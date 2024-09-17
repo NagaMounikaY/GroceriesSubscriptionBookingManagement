@@ -1,0 +1,40 @@
+package com.crimsonlogic.groceriessubbookingsystem.controller;
+
+import com.crimsonlogic.groceriessubbookingsystem.service.WalletService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+
+@Controller
+@RequestMapping("/wallet")
+public class WalletController {
+
+    @Autowired
+    private WalletService walletService;
+
+    @GetMapping("/view")
+    public String viewWallet(@RequestParam String userId, Model model) {
+        // Logic to get wallet details
+        Wallet wallet = walletService.getWalletByUserId(userId);
+        model.addAttribute("wallet", wallet);
+        return "wallet/view";
+    }
+
+    @PostMapping("/addMoney")
+    public String addMoney(
+            @RequestParam String userId,
+            @RequestParam BigDecimal amount,
+            Model model) {
+        try {
+            walletService.addMoneyToWallet(userId, amount);
+            model.addAttribute("message", "Money added successfully!");
+        } catch (Exception e) {
+            model.addAttribute("message", "Error adding money: " + e.getMessage());
+        }
+        // Redirect to view the updated wallet
+        return "redirect:/wallet/view?userId=" + userId;
+    }
+}

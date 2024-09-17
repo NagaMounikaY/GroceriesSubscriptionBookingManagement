@@ -1,0 +1,194 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1" isELIgnored="false" import="com.crimsonlogic.groceriessubbookingsystem.entity.Users" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Subscription Calendar</title>
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/locales-all.min.js'></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <style>
+        /* Container style to control calendar size */
+        #calendar {
+            width: 80%; /* Adjust width as needed */
+            max-width: 800px; /* Max width for larger screens */
+            margin: 0 auto; /* Center the calendar */
+            height: 500px; /* Adjust height as needed */
+        }
+
+        .daily-event {
+            background-color: #84e430  !important; /* Light green for daily */
+            border-color: #84e430 !important;
+        }
+        .weekly-event {
+            background-color: #94daee!important; /* Light blue for weekly */
+            border-color: #94daee !important;
+        }
+        .monthly-event {
+            background-color: #f7b7a3 !important; /* Light orange for monthly */
+            border-color: #f7b7a3 !important;
+        }
+        .fc-event {
+            border-radius: 0 !important; /* Optional: make the box edges square */
+        }
+        .cancelled-event {
+            background-color: #d3d3d3 !important; /* Light gray for cancelled events */
+            border-color: #d3d3d3 !important;
+            text-decoration: line-through; /* Strike-through text */
+            opacity: 0.6; /* Slightly faded appearance */
+        }
+    </style>
+</head>
+<body>
+    <div id='calendar'></div>
+    
+    <!-- Modal for updating status -->
+    <div class="modal fade" id="updateStatusModal" tabindex="-1" role="dialog" aria-labelledby="updateStatusModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateStatusModalLabel">Subscription Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="updateStatusForm">
+                        <input type="hidden" id="eventId" name="eventId">
+                        <div class="form-group">
+                            <label for="eventTitle">Item:</label>
+                            <input type="text" id="eventTitle" class="form-control" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="frequency">Frequency:</label>
+                            <input type="text" id="frequency" class="form-control" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="amount">Amount:</label>
+                            <input type="text" id="amount" class="form-control" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="quantity">Quantity:</label>
+                            <input type="text" id="quantity" class="form-control" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="status">You Want To Cancel:</label>
+                            <select class="form-control" id="status" name="status" required>
+                                <option value="">-- Select Status --</option>
+                                <option value="Cancelled">Cancelled</option>
+                                <option value="NotDelivered">NotDelivered</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Cancel</button>
+                    </form>
+                    <div id="message" class="mt-3"></div> <!-- This is where the message will be displayed -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                events: {
+                    url: '${pageContext.request.contextPath}/subscription/api/subscriptions',
+                    method: 'GET',
+                    failure: function(response) {
+                        console.error('Error fetching events:', response);
+                        alert('Failed to fetch events.');
+                    }
+                },
+                eventClassNames: function(arg) {
+                    // Determine the class based on event frequency and status
+                    var frequency = arg.event.extendedProps.frequency;
+                    var status = arg.event.extendedProps.status;
+                    
+                    // Determine the base class based on frequency
+                    var baseClass = '';
+                    switch (frequency) {
+                        case 'daily':
+                            baseClass = 'daily-event';
+                            break;
+                        case 'weekly':
+                            baseClass = 'weekly-event';
+                            break;
+                        case 'monthly':
+                            baseClass = 'monthly-event';
+                            break;
+                    }
+                    
+                    // Add the cancelled-event class if the status is cancelled
+                    if (status === 'Cancelled') {
+                        return [baseClass, 'cancelled-event'];
+                    }
+                    
+                    return [baseClass];
+                },
+                eventClick: function(info) {
+                    // Fill in the modal with event details
+                    document.getElementById('eventId').value = info.event.id;
+                    document.getElementById('eventTitle').value = info.event.title;
+                    document.getElementById('frequency').value = info.event.extendedProps.frequency;
+                    document.getElementById('amount').value = info.event.extendedProps.amount;
+                    document.getElementById('quantity').value = info.event.extendedProps.quantity;
+                    document.getElementById('status').value = info.event.extendedProps.status;
+                    
+                    // Disable form fields if the event is cancelled
+                    if (info.event.extendedProps.status === 'Cancelled') {
+                        document.getElementById('status').disabled = true;
+                    } else {
+                        document.getElementById('status').disabled = false;
+                    }
+                    
+                    $('#updateStatusModal').modal('show'); // Show the modal
+                },
+                locale: 'en',
+                contentHeight: 'auto'  /* Adjust height of calendar content */
+            });
+
+            calendar.render();
+
+            // Handle form submission
+            document.getElementById('updateStatusForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                var formData = new FormData(this);
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '${pageContext.request.contextPath}/subscription/update-status', true);
+
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        var response = JSON.parse(xhr.responseText);
+                        var messageElement = document.getElementById('message');
+                        if (response.success) {
+                            // Update the message and show the modal
+                            messageElement.innerHTML = '<div class="alert alert-success">Your Order Cancelled successfully!</div>';
+                            $('#updateStatusModal').modal('show'); // Show the modal with success message
+                            calendar.refetchEvents(); // Refresh events
+                        } else {
+                            messageElement.innerHTML = '<div class="alert alert-danger">Failed to update status: ' + response.message + '</div>';
+                            $('#updateStatusModal').modal('show'); // Show the modal with error message
+                        }
+                    } else {
+                        // Handle non-200 HTTP responses
+                        var messageElement = document.getElementById('message');
+                        messageElement.innerHTML = '<div class="alert alert-danger">An unexpected error occurred.</div>';
+                        $('#updateStatusModal').modal('show'); // Show the modal with error message
+                    }
+                };
+
+                xhr.send(formData);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome to Groceries Subscription Booking Management System</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .card {
+            margin: 20px;
+        }
+        .header {
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome to Groceries Subscription Booking Management System</h1>
+            <p>Your one-stop solution for managing grocery subscriptions efficiently.</p>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <img src="images/subscription.jpg" class="card-img-top" alt="Subscription">
+                    <div class="card-body">
+                        <h5 class="card-title">Manage Subscriptions</h5>
+                        <p class="card-text">Easily manage your grocery subscriptions with our user-friendly interface.</p>
+                        <a href="subscriptions.jsp" class="btn btn-primary">Go to Subscriptions</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <img src="images/orders.jpg" class="card-img-top" alt="Orders">
+                    <div class="card-body">
+                        <h5 class="card-title">Track Orders</h5>
+                        <p class="card-text">Keep track of all your orders and their statuses in one place.</p>
+                        <a href="orders.jsp" class="btn btn-primary">Go to Orders</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <img src="images/payments.jpg" class="card-img-top" alt="Payments">
+                    <div class="card-body">
+                        <h5 class="card-title">Manage Payments</h5>
+                        <p class="card-text">Securely manage all your payments and transactions.</p>
+                        <a href="payments.jsp" class="btn btn-primary">Go to Payments</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

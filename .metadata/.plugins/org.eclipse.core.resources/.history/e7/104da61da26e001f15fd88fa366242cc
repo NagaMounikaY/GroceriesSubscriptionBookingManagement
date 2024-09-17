@@ -1,0 +1,7 @@
+package com.crimsonlogic.groceriessubbookingsystem.repository;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Users;
+
+public class UserRepository extends JpaRepository<Users,Integer>{
+
+}

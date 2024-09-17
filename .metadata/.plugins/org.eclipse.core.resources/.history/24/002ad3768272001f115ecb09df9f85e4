@@ -1,0 +1,16 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Order;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Subscription;
+
+public interface SubscriptionService {
+	List<Subscription> getAllSubscription();
+    Optional<Subscription> getSubscriptionById(String subId);
+    Subscription saveSubscription(Subscription sub);
+    void deleteSubscription(String subId);
+    List<Subscription> getSubscriptionsByUserId(String userId);
+    void updateSubscriptionStatus(String subId, Subscription.SubscriptionStatus status);
+}

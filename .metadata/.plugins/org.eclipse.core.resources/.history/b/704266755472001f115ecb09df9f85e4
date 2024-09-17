@@ -1,0 +1,11 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Subscription;
+
+public interface SubscriptionService {
+    Subscription createSubscription(String userId, String groceryId, Subscription.Frequency frequency, int durationMonths, BigDecimal amount);
+    //List<Subscription> getSubscriptionsByUserId(String userId);
+}

@@ -1,0 +1,40 @@
+package com.crimsonlogic.groceriessubbookingsystem.entity;
+
+import java.time.LocalDate;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import com.crimsonlogic.bookmycouiermanagementsystem.entity.Payments;
+import com.crimsonlogic.bookmycouiermanagementsystem.entity.Users;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name="payment_info")
+@Data
+@NoArgsConstructor
+public class Payments {
+	
+	@Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+	private  int payment_id;
+	private  float amount;
+	private LocalDate payment_date;
+	private String payment_mode;
+	private long card_number;
+	private String expire_date;
+	private int cvv_number;
+	private String transaction_id;
+	
+	 @ManyToOne
+	    @JoinColumn(name = "order_id")
+	    private Order order;
+
+}

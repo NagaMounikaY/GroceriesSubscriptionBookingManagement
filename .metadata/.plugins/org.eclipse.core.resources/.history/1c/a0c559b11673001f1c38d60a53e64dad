@@ -1,0 +1,37 @@
+package com.crimsonlogic.groceriessubbookingsystem.entity;
+
+import java.math.BigDecimal;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name="wallet")
+@Data
+@NoArgsConstructor
+public class Wallet {
+	
+	@Id
+	@GeneratedValue(generator = "custom-prefix-generator")
+    @GenericGenerator(name = "custom-prefix-generator",
+    	strategy = "com.crimsonlogic.groceriessubbookingsystem.util.CustomPrefixIdentifierGenerator",
+    	parameters = @org.hibernate.annotations.Parameter(name = "prefix", value = "WAL")
+    )
+	private  String wallet_id;
+	
+	private BigDecimal wallet_amount;
+	
+	@OneToOne
+    @JoinColumn(name = "user_id")
+    private Users user;
+
+}

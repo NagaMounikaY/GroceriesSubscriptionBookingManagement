@@ -1,0 +1,13 @@
+package com.crimsonlogic.groceriessubbookingsystem.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Groceries;
+
+public interface GroceryRepository extends JpaRepository<Groceries, String> {
+	// Method to find groceries by category ID
+    List<Groceries> findByCategoryCategory_id(String categoryId);
+
+}

@@ -1,0 +1,73 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Users;
+import com.crimsonlogic.groceriessubbookingsystem.repository.UserRepository;
+
+import java.util.Optional;
+
+@Service
+public class UserService {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    @Autowired
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @Transactional
+    public void registerUser(Users user) {
+        user.setUserPassword(passwordEncoder.encode(user.getUserPassword())); // Encrypt the password
+        userRepository.save(user);
+    }
+
+    public Optional<Users> loginUser(String email, String password) {
+        Optional<Users> userOptional = userRepository.findByUserEmail(email);
+        if (userOptional.isPresent()) {
+            Users user = userOptional.get();
+            if (passwordEncoder.matches(password, user.getUserPassword())) { // Validate the password
+                return Optional.of(user);
+            }
+        }
+        return Optional.empty();
+    }
+
+    public Optional<Users> getUserById(String userId) {
+        return userRepository.findById(userId);
+    }
+
+    @Transactional
+    public void updateUser(String userId, Users updatedUser) {
+        if (userRepository.existsById(userId)) {
+            updatedUser.setUser_id(userId); // Ensure the ID is preserved
+            userRepository.save(updatedUser);
+        }
+    }
+    
+    public Users getUsersById(String userId) {
+        return userRepository.findById(userId).orElse(null); // Return null or handle as needed
+    }
+
+    @Transactional
+    public boolean updatePassword(String email, String newPassword) {
+        Optional<Users> userOptional = userRepository.findByUserEmail(email);
+        if (userOptional.isPresent()) {
+            Users user = userOptional.get();
+            user.setUserPassword(passwordEncoder.encode(newPassword)); // Encrypt the new password
+            userRepository.save(user);
+            return true; // Password updated successfully
+        }
+        return false; // User not found
+    }
+
+    public Users findByEmail(String email) {
+        return userRepository.findByUserEmail(email).orElse(null); // Return null if user is not found
+    }
+}

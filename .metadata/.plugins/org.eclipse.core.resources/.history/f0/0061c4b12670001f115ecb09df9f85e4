@@ -1,0 +1,56 @@
+package com.crimsonlogic.groceriessubbookingsystem.entity;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Set;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "Groceries")
+@Data
+@NoArgsConstructor
+public class Groceries {
+    @Id
+    @GeneratedValue(generator = "custom-prefix-generator")
+    @GenericGenerator(name = "custom-prefix-generator",
+    	strategy = "com.crimsonlogic.groceriessubbookingsystem.util.CustomPrefixIdentifierGenerator",
+    	parameters = @org.hibernate.annotations.Parameter(name = "prefix", value = "GRC")
+    )
+    private String grocery_id;
+
+    @Column(name="grocery_name")
+    private String groceryName;
+
+    private String description;
+
+    @Column(nullable = false)
+    private BigDecimal grocery_price;
+    
+    
+    private String imageURL;
+
+    private int in_stock;
+
+    @OneToone(mappedBy = "groceries")
+    private Set<Subscription> subscriptions;
+    
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    @OneToMany(mappedBy = "groceries")
+    private List<OrderDetails> orderDetails;
+
+}

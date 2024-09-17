@@ -1,0 +1,21 @@
+package com.crimsonlogic.groceriessubbookingsystem.entity;
+import javax.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+public class Transaction {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private double amount;
+    private String type; // e.g., debit, credit
+    private LocalDateTime date;
+
+    @ManyToOne
+    @JoinColumn(name = "wallet_id")
+    private Wallet wallet;
+
+    // Getters and setters
+}

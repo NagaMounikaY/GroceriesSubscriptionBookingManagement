@@ -1,0 +1,12 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import java.util.List;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Payments;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Users;
+
+public interface PaymentService {
+    void savePayment(Payments payment);
+    List<Payments> findPaymentsByUserId(String userId);
+    void savePaymentAndOrders(Payments payment, Users user, List<?> cart);
+}

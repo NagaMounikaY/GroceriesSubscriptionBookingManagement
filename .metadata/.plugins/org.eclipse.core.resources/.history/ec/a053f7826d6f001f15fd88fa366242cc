@@ -1,0 +1,38 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Grocery</title>
+</head>
+<body>
+    <h1>Add Grocery</h1>
+    <form:form action="${pageContext.request.contextPath}/groceries/add" modelAttribute="grocery" method="post">
+        <div>
+            <label for="grocery_name">Name:</label>
+            <form:input path="groceryName" id="groceryName"/>
+        </div>
+        <div>
+            <label for="description">Description:</label>
+            <form:input path="description" id="description"/>
+        </div>
+        <div>
+            <label for="grocery_price">Price:</label>
+            <form:input path="groceryPrice" id="grocery_price"/>
+        </div>
+        <div>
+            <label for="inStock">In Stock:</label>
+            <form:input path="inStock" id="inStock"/>
+        </div>
+        <div>
+            <label for="imageURL">Image URL:</label>
+            <form:input path="imageURL" id="imageURL"/>
+        </div>
+        <div>
+            <button type="submit">Add Grocery</button>
+        </div>
+    </form:form>
+</body>
+</html>
+

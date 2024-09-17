@@ -1,0 +1,5 @@
+package com.crimsonlogic.groceriessubbookingsystem.controller;
+
+public class WalletController {
+
+}

@@ -1,0 +1,14 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.crimsonlogic.groceriessubbookingsystem.dao.OrderDetailsDTO;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Order;
+
+public interface OrderService {
+	Order createOrder(String userId, String groceryId);
+	OrderDetailsDTO getOrderDetails(String orderId);
+	List<Order> listOrders();
+}

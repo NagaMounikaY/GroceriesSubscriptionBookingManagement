@@ -1,0 +1,48 @@
+package com.crimsonlogic.groceriessubbookingsystem.entity;
+
+
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
+
+@Entity
+@Table(name = "Order_details")
+public class OrderDetails {
+    @Id
+    @GeneratedValue(generator = "custom-prefix-generator")
+    @GenericGenerator(name = "custom-prefix-generator",
+    	strategy = "com.crimsonlogic.groceriessubbookingsystem.util",
+    	parameters = @org.hibernate.annotations.Parameter(name = "prefix", value = "ODT")
+    )
+    private int order_detail_id;
+
+    @ManyToOne
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
+
+    @ManyToOne
+    @JoinColumn(name = "grocery_id") // Nullable if the item is part of a subscription
+    private Groceries grocery;
+
+    @ManyToOne
+    @JoinColumn(name = "subscription_id") // Nullable if the item is a one-time purchase
+    private Subscription subscription;
+
+    @Column(nullable = false)
+    private int quantity;
+
+    @Column(nullable = false)
+    private float item_price;
+
+    @Column(nullable = false)
+    private String oredr_item_name;
+    
+   
+}

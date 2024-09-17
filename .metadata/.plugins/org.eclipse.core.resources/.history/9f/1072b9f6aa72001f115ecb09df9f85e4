@@ -1,0 +1,33 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Wallet;
+import com.crimsonlogic.groceriessubbookingsystem.repository.WalletRepository;
+
+@Service
+public class WalletService {
+
+	  @Autowired
+	    private WalletRepository walletRepository;
+
+	    public void addMoneyToWallet(String userId, BigDecimal amountToAdd) {
+	        Wallet wallet = walletRepository.findWalletByUserId(userId);
+	        if (wallet != null) {
+	            BigDecimal currentAmount = wallet.getWallet_amount();
+	            BigDecimal newAmount = currentAmount.add(amountToAdd);
+	            wallet.setWallet_amount(newAmount);
+	            walletRepository.save(wallet);
+	        } else {
+	            throw new RuntimeException("Wallet not found for userId: " + userId);
+	        }
+	    }
+	    
+	    public Wallet getWalletByUserId(String userId) {
+	        return walletRepository.findWalletByUserId(userId);
+	    }
+}

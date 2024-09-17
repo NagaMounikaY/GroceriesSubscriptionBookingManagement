@@ -1,0 +1,30 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Service
+public class WalletService {
+
+    private Map<String, Double> userWallets = new HashMap<>();
+
+    public WalletService() {
+        // Initialize with some dummy data
+        userWallets.put("user1", 100.0);
+    }
+
+    public double getBalance(String userId) {
+        return userWallets.getOrDefault(userId, 0.0);
+    }
+
+    public boolean deductAmount(String userId, double amount) {
+        double balance = getBalance(userId);
+        if (balance >= amount) {
+            userWallets.put(userId, balance - amount);
+            return true;
+        }
+        return false;
+    }
+}

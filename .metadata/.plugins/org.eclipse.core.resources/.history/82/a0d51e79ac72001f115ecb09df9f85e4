@@ -1,0 +1,83 @@
+package com.crimsonlogic.groceriessubbookingsystem.controller;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Wallet;
+import com.crimsonlogic.groceriessubbookingsystem.service.WalletService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.List;
+import java.util.Optional;
+
+@Controller
+@RequestMapping("/wallet")
+public class WalletController {
+
+    @Autowired
+    private WalletService walletService;
+
+    @GetMapping("/list")
+    public String listWallets(Model model) {
+        List<Wallet> wallets = walletService.getAllWallets();
+        model.addAttribute("wallets", wallets);
+        return "wallet-list";
+    }
+
+    @GetMapping("/add")
+    public String showAddForm(Model model) {
+        model.addAttribute("wallet", new Wallet());
+        model.addAttribute("pageTitle", "Add Wallet");
+        model.addAttribute("action", "add");
+        return "wallet-form";
+    }
+
+    @PostMapping("/add")
+    public String addWallet(@Valid @ModelAttribute Wallet wallet, BindingResult bindingResult, Model model) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("pageTitle", "Add Wallet");
+            model.addAttribute("action", "add");
+            return "wallet-form";
+        }
+        walletService.createWallet(wallet);
+        return "redirect:/wallet/list";
+    }
+
+    @GetMapping("/edit/{id}")
+    public String showEditForm(@PathVariable("id") String walletId, Model model) {
+        Optional<Wallet> wallet = walletService.getWalletById(walletId);
+        if (wallet.isPresent()) {
+            model.addAttribute("wallet", wallet.get());
+            model.addAttribute("pageTitle", "Edit Wallet");
+            model.addAttribute("action", "edit");
+            return "wallet-form";
+        } else {
+            model.addAttribute("error", "Wallet not found with ID: " + walletId);
+            return "error";
+        }
+    }
+
+    @PostMapping("/edit")
+    public String editWallet(@Valid @ModelAttribute Wallet wallet, BindingResult bindingResult, Model model) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("pageTitle", "Edit Wallet");
+            model.addAttribute("action", "edit");
+            return "wallet-form";
+        }
+        walletService.updateWallet(wallet);
+        return "redirect:/wallet/list";
+    }
+
+    @GetMapping("/delete/{id}")
+    public String deleteWallet(@PathVariable("id") String walletId, Model model) {
+        try {
+            walletService.deleteWallet(walletId);
+        } catch (RuntimeException e) {
+            model.addAttribute("error", "Wallet not found with ID: " + walletId);
+            return "error";
+        }
+        return "redirect:/wallet/list";
+    }
+}

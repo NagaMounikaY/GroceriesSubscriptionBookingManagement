@@ -1,0 +1,52 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1" isELIgnored="false"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>List of Subscriptions</title>
+</head>
+<body>
+    <h1>List of Subscriptions</h1>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Subscription ID</th>
+                <th>Grocery ID</th>
+                <th>Frequency</th>
+                <th>Duration (Months)</th>
+                <th>Discount</th>
+                <th>Amount</th>
+                <th>Created At</th>
+                <th>Updated At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <c:forEach items="${subscriptions}" var="subscription">
+                <tr>
+                    <td>${subscription.subscription_id}</td>
+                    <td>${subscription.groceries.grocery_id}</td>
+                    <td>${subscription.frequency}</td>
+                    <td>${subscription.durationMonths}</td>
+                    <td>${subscription.discount}</td>
+                    <td>${subscription.amount}</td>
+                    <td>${subscription.createdAt}</td>
+                    <td>${subscription.updatedAt}</td>
+                    <td>
+                        <a href="${pageContext.request.contextPath}/subscriptions/details?subscription_id=${subscription.subscription_id}">View Details</a>
+                        <!-- Form to update subscription -->
+                        <form action="${pageContext.request.contextPath}/subscriptions/update" method="post" style="display:inline;">
+                            <input type="hidden" name="subscription_id" value="${subscription.subscription_id}" />
+                            <input type="submit" value="Update Subscription" />
+                        </form>
+                    </td>
+                </tr>
+            </c:forEach>
+        </tbody>
+    </table>
+
+    <a href="${pageContext.request.contextPath}/subscriptions/add">Add New Subscription</a>
+</body>
+</html>

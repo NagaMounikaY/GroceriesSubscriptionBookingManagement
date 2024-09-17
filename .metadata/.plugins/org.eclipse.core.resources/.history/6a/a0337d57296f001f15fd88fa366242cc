@@ -1,0 +1,41 @@
+package com.crimsonlogic.groceriessubbookingsystem.entity;
+
+import java.math.BigDecimal;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "OrderItems")
+public class OrderItem {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int orderItemID;
+
+    @ManyToOne
+    @JoinColumn(name = "orderID", nullable = false)
+    private Order order;
+
+    @ManyToOne
+    @JoinColumn(name = "groceryID") // Nullable if the item is part of a subscription
+    private Grocery grocery;
+
+    @ManyToOne
+    @JoinColumn(name = "subscriptionID") // Nullable if the item is a one-time purchase
+    private Subscription subscription;
+
+    @Column(nullable = false)
+    private int quantity;
+
+    @Column(nullable = false)
+    private BigDecimal unitPrice;
+
+    @Column(nullable = false)
+    private BigDecimal totalPrice;
+}

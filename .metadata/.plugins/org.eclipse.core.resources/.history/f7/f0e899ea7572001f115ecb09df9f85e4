@@ -1,0 +1,50 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Order;
+import com.crimsonlogic.groceriessubbookingsystem.repository.OrderRepository;
+
+@Service
+public class OrderServiceImpl implements OrderService {
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Override
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+
+    @Override
+    public Optional<Order> getOrderById(String orderId) {
+        return orderRepository.findById(orderId);
+    }
+
+    @Override
+    public Order saveOrder(Order order) {
+        return orderRepository.save(order);
+    }
+
+    @Override
+    public void deleteOrder(String orderId) {
+        orderRepository.deleteById(orderId);
+    }
+    
+ // Fetch orders by a specific user ID
+    public List<Order> getOrdersByUserId(String userId) {
+        return orderRepository.findOrdersByUserId(userId);
+    }
+    
+    @Transactional
+    public void updateOrderStatus(String orderId, Order.OrderStatus status) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new IllegalArgumentException("Invalid order ID"));
+        order.setOrderStatus(status);
+        orderRepository.save(order);
+    }
+}

@@ -1,0 +1,19 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Subscription;
+
+public interface SubscriptionService {
+	List<Subscription> getAllSubscription();
+    Optional<Subscription> getSubscriptionById(String subId);
+    List<Subscription> getSubscriptionsByUserId(String userId);
+    void updateSubscriptionStatus(String subId, Subscription.SubscriptionStatus status);
+    Subscription createSubscription(String groceryId, String userId, int quantity, String frequencyStr,
+            String startDateStr, String weekDay, Integer dayOfMonth) throws IOException;
+    BigDecimal calculateTotalAmount(List<Subscription> cart);
+}

@@ -1,0 +1,73 @@
+package com.crimsonlogic.groceriessubbookingsystem.controller;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Groceries;
+import com.crimsonlogic.groceriessubbookingsystem.service.FileService;
+import com.crimsonlogic.groceriessubbookingsystem.service.GroceriesService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+
+@Controller
+@RequestMapping("/groceries")
+public class GroceriesController {
+
+    @Autowired
+    private GroceriesService groceriesService;
+
+    @Autowired
+    private FileService fileService;
+
+    @GetMapping
+    public String getAllGroceries(Model model) {
+        List<Groceries> groceries = groceriesService.getAllGroceries();
+        model.addAttribute("groceries", groceries);
+        return "groceries";
+    }
+
+    @GetMapping("/add")
+    public String showAddGroceryForm(Model model) {
+        model.addAttribute("grocery", new Groceries());
+        return "add-grocery";
+    }
+
+    @PostMapping("/add")
+    public String addGrocery(@ModelAttribute Groceries grocery,
+                             @RequestParam("imageURL") MultipartFile file,
+                             Model model) {
+        try {
+            String imageUrl = fileService.saveFile(file);
+            grocery.setImageURL(imageUrl);
+        } catch (IOException e) {
+            model.addAttribute("error", "Failed to upload image.");
+            return "add-grocery";
+        }
+        
+        groceriesService.saveGrocery(grocery);
+        return "redirect:/groceries";
+    }
+
+    @GetMapping("/{id}")
+    public String getGroceryById(@PathVariable String id, Model model) {
+        Optional<Groceries> grocery = groceriesService.getGroceryById(id);
+        if (grocery.isPresent()) {
+            model.addAttribute("grocery", grocery.get());
+            return "grocery";
+        } else {
+            model.addAttribute("error", "Grocery not found");
+            return "error";
+        }
+    }
+
+    @GetMapping("/search")
+    public String searchGroceriesByName(@RequestParam("name") String name, Model model) {
+        List<Groceries> groceries = groceriesService.findByName(name);
+        model.addAttribute("groceries", groceries);
+        return "groceries";
+    }
+}

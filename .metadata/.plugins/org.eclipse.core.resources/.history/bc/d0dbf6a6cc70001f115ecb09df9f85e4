@@ -1,0 +1,13 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Groceries;
+import java.util.List;
+
+public interface GroceriesService {
+    List<Groceries> getAllGroceries();
+    Groceries getGroceryById(String groceryId);
+    void saveGrocery(Groceries grocery);
+    void deleteGrocery(String groceryId);
+    List<Groceries> getGroceriesByCategory(String categoryId)
+    // Other methods as needed
+}

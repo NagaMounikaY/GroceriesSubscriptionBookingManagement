@@ -1,0 +1,31 @@
+package com.crimsonlogic.groceriessubbookingsystem.entity;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name="users_info")
+@Data
+@NoArgsConstructor
+public class Users {
+	
+	@Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+	private  int user_id;
+	@Column(nullable = false, unique = true)
+	private String user_Name;
+	private String user_role;
+	private String user_email;
+	private String user_password;
+	private String  user_mobile_number;
+
+
+	
+}

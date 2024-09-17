@@ -1,0 +1,97 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1" isELIgnored="false"%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Customer</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Main Section */
+        main {
+            margin-top: 60px; /* Adjust for header height */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 120px); /* Adjust for header and footer height */
+            padding: 20px;
+            background: #f4f4f4;
+            text-align: center;
+            background-image: url('https://www.bing.com/images/search?view=detailV2&ccid=nJjVVjy2&id=1F6101895265756B30DCBA8F300E52470CF91E10&thid=OIP.nJjVVjy2_82hdYY0C6no1QHaFy&mediaurl=https%3A%2F%2Ftreatdreams.com%2Fwp-content%2Fuploads%2F2022%2F04%2Ftop-view-of-peach-cobbler-ingredients-1024x801.jpg&exph=801&expw=1024&q=Grocery+Items+HD&simid=608050628497716731&form=IRPRST&ck=3FAD17A1E8357607A2F508FDFE8416D3&selectedindex=19&itb=0&cw=1109&ch=536&ajaxhist=0&ajaxserp=0&vt=2&cit=ccid_xKkWSwS9*cp_1027EBE2823F4281A2772C261A27913C*mid_AB57B18EEA6DE2C1108CCAD14644074AC77360F6*simid_608041411461983815*thid_OIP.xKkWSwS9VDw8pN86Rqm4QwHaEo');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .welcome-message {
+            max-width: 600px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .welcome-message h2 {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .welcome-message p {
+            font-size: 1.1em;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .cta-buttons {
+            margin-top: 20px;
+        }
+
+        .cta-buttons a {
+            display: inline-block;
+            margin: 0 10px;
+            padding: 10px 20px;
+            text-decoration: none;
+            color: #fff;
+            background: #00008B;
+            border-radius: 5px;
+            font-size: 1.1em;
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+
+        .cta-buttons a:hover {
+            background: #0056b3;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <jsp:include page="/customerHeader.jsp"></jsp:include>
+
+    <!-- Main Section -->
+    <main class="main">
+        <div class="welcome-message">
+            <h2>Welcome to the Grocery Store!</h2>
+            <p>We're glad to have you here. Explore the Subscriptions below to get started:</p>
+        </div>
+        <div class="cta-buttons">
+            <a href="${pageContext.request.contextPath}/users/profile?user_id=${user.user_id}">Update Profile</a>
+            <a href="<%= request.getContextPath() %>/list">Track Courier</a>
+        </div>
+    </main>
+
+    <!-- Footer Section -->
+    <jsp:include page="/footer.jsp"></jsp:include>
+</body>
+</html>

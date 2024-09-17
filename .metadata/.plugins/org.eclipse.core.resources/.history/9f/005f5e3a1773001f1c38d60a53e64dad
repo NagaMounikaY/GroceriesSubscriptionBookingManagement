@@ -1,0 +1,52 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Wallet;
+import com.crimsonlogic.groceriessubbookingsystem.repository.WalletRepository;
+
+@Service
+public class WalletService {
+
+    @Autowired
+    private WalletRepository walletRepository;
+
+
+    public Wallet createWallet(Wallet wallet) {
+        return walletRepository.save(wallet);
+    }
+
+    public Optional<Wallet> getWalletById(String walletId) {
+        return walletRepository.findById(walletId);
+    }
+
+    public Wallet updateWallet(Wallet wallet) {
+        if (walletRepository.existsById(wallet.getWallet_id())) {
+            return walletRepository.save(wallet);
+        } else {
+            throw new RuntimeException("Wallet not found with id " + wallet.getWallet_id());
+        }
+    }
+
+
+    public void deleteWallet(String walletId) {
+        if (walletRepository.existsById(walletId)) {
+            walletRepository.deleteById(walletId);
+        } else {
+            throw new RuntimeException("Wallet not found with id " + walletId);
+        }
+    }
+    
+    public List<Wallet> getAllWallets() {
+        return walletRepository.findAll();
+    }
+    
+    public List<Wallet> getWalletsByUserId(String userId) {
+        return walletRepository.findWalletByUserId(userId);
+    }
+
+}

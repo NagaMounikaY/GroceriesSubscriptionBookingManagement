@@ -1,0 +1,66 @@
+package com.crimsonlogic.groceriessubbookingsystem.entity;
+
+import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.GenericGenerator;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "Groceries")
+@Data
+@NoArgsConstructor
+public class Groceries {
+    @Id
+    @GeneratedValue(generator = "custom-prefix-generator")
+    @GenericGenerator(name = "custom-prefix-generator",
+        strategy = "com.crimsonlogic.groceriessubbookingsystem.util.CustomPrefixIdentifierGenerator",
+        parameters = @org.hibernate.annotations.Parameter(name = "prefix", value = "GRC")
+    )
+    private String grocery_id;
+
+    @Column(name = "grocery_name")
+    private String groceryName;
+
+    private String description;
+
+    @Column(nullable = false)
+    private BigDecimal grocery_price;
+
+    private String imageURL;
+
+    private int in_stock;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    @OneToOne(mappedBy = "groceries", cascade = CascadeType.ALL)
+    private Subscription subscription;  // Updated to one-to-one relationship
+    
+    @OneToMany(mappedBy = "groceries", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @Fetch(FetchMode.SUBSELECT)
+    private Set<Order> orders = new HashSet<>(); // Updated to reference multiple orders
+
+    public Groceries(String grocery_id) {
+        super();
+        this.grocery_id = grocery_id;
+    }
+}

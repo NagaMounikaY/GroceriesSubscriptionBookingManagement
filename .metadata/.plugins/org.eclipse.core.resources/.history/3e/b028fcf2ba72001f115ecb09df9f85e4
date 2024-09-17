@@ -1,0 +1,5 @@
+package com.crimsonlogic.groceriessubbookingsystem.entity;
+
+public class Transaction {
+
+}

@@ -6,8 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.crimsonlogic.groceriessubbookingsystem.entity.Users;
 
-public interface UserRepository extends JpaRepository<Users,String>{
-	
-	Optional<Users> findByUserEmailAndUserPassword(String email, String password);
+public interface UserRepository extends JpaRepository<Users, String> {
+
+	Optional<Users> findByUserEmail(String email);
 
 }

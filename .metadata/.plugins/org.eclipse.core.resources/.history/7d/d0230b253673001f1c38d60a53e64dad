@@ -1,0 +1,191 @@
+package com.crimsonlogic.groceriessubbookingsystem.controller;
+
+//displaying the subscription and grocery details
+    @GetMapping("/sub")
+    public String getSubscriptionDetails(@RequestParam("groceryId") String groceryId, Model model) {
+        Groceries grocery = groceryService.getGroceryById(groceryId);
+        model.addAttribute("grocery", grocery);
+        return "subscription-details"; // JSP page to display subscription details
+    }
+
+    //load the grocery details and subscription details 
+    @PostMapping("/submit")
+    public String submitSubscription(@RequestParam("grocery_id") String groceryId,
+                                     @RequestParam("quantity") int quantity,
+                                     @RequestParam("user_id") String userId,
+                                     @RequestParam("frequency") String frequencyStr,
+                                     @RequestParam(value = "startDate", required = false) String startDateStr,
+                                     @RequestParam(value = "weekDay", required = false) String weekDay,
+                                     @RequestParam(value = "dayOfMonth", required = false) Integer dayOfMonth,
+                                     HttpSession session,
+                                     Model model) {
+
+    	try {
+            // Create a subscription
+            Subscription subscription = subscriptionService.createSubscription(
+                groceryId, userId, quantity, frequencyStr, startDateStr, weekDay, dayOfMonth
+            );
+
+            // Get the subscription cart from the session
+            @SuppressWarnings("unchecked")
+			List<Subscription> cart = (List<Subscription>) session.getAttribute("subCart");
+            if (cart == null) {
+                cart = new ArrayList<>();
+            }
+
+            // Add the subscription to the cart
+            cart.add(subscription);
+            session.setAttribute("subCart", cart);
+
+            // Calculate the total amount of all items in the cart
+            BigDecimal totalAmount = subscriptionService.calculateTotalAmount(cart);
+
+            // Add cart and total amount to the model to display in the view
+            model.addAttribute("subCart", cart);
+            model.addAttribute("subTotalAmount", totalAmount);
+
+            return "subCart"; // JSP page to display the cart
+        } catch (IOException e) {
+            model.addAttribute("message", "Error creating subscription: " + e.getMessage());
+            return "errorPage"; // Redirect to an error page or display an error message
+        }
+    }
+    
+    //display the subscription cart details
+    @GetMapping("/subcart")
+    public String viewCart(HttpSession session, Model model) {
+        @SuppressWarnings("unchecked")
+        List<Subscription> cart = (List<Subscription>) session.getAttribute("subCart");
+
+        // Calculate total amount using SubscriptionService
+        BigDecimal totalAmount = subscriptionService.calculateTotalAmount(cart);
+
+        model.addAttribute("cart", cart);
+        model.addAttribute("subTotalAmount", totalAmount);
+
+        return "subCart";
+    }
+    
+    //remove the subscription item
+    @PostMapping("/subremove")
+    public String removeFromCart(@RequestParam("index") int index, HttpSession session, Model model) {
+        @SuppressWarnings("unchecked")
+		List<Subscription> cart = (List<Subscription>) session.getAttribute("subCart");
+        if (cart != null && index >= 0 && index < cart.size()) {
+            cart.remove(index);
+            session.setAttribute("subCart", cart);
+        }
+        return "redirect:/subscription/subcart";
+    }
+    
+    //increase the quantity of subscription item
+    @PostMapping("/addquantity")
+    public String addQuantity(@RequestParam("index") int index, HttpSession session, Model model) {
+        @SuppressWarnings("unchecked")
+        List<Subscription> cart = (List<Subscription>) session.getAttribute("subCart");
+
+        if (cart != null) {
+            subscriptionService.addQuantity(index, cart);
+            session.setAttribute("subCart", cart);
+
+            // Calculate the total amount after addition
+            BigDecimal totalAmount = subscriptionService.calculateTotalAmount(cart);
+            model.addAttribute("subCart", cart);
+            model.addAttribute("subTotalAmount", totalAmount);
+        }
+
+        return "redirect:/subscription/subcart"; // Update to the appropriate view name
+    }
+    
+    
+    //decrease the quantity of  subscription item
+    @PostMapping("/reducequantity")
+    public String reduceQuantity(@RequestParam("index") int index, HttpSession session, Model model) {
+        @SuppressWarnings("unchecked")
+        List<Subscription> cart = (List<Subscription>) session.getAttribute("subCart");
+
+        if (cart != null) {
+            subscriptionService.reduceQuantity(index, cart);
+            session.setAttribute("subCart", cart);
+
+            // Calculate the total amount after reduction
+            BigDecimal totalAmount = subscriptionService.calculateTotalAmount(cart);
+            model.addAttribute("subCart", cart);
+            model.addAttribute("subTotalAmount", totalAmount);
+        }
+
+        return "redirect:/subscription/subcart"; // Update to the appropriate view name
+    }
+    
+  //redirecting to the payment page
+    @GetMapping("/subcheckout")
+    public String checkout(HttpSession session, Model model) {
+        @SuppressWarnings("unchecked")
+        List<Subscription> cart = (List<Subscription>) session.getAttribute("subCart");
+        if (cart == null || cart.isEmpty()) {
+            model.addAttribute("message", "No items in the cart");
+            return "subCart";
+        }
+
+        // Calculate the total amount
+        BigDecimal totalAmount = subscriptionService.calculateTotalAmount(cart);
+
+        // Get the user and wallet information
+        Users user = (Users) session.getAttribute("user");
+        Wallet wallet = walletService.getOrCreateWalletByUserId(user.getUser_id());
+
+        // Check if the wallet balance is sufficient
+        if (wallet.getBalance().compareTo(totalAmount) < 0) {
+            model.addAttribute("message", "Insufficient wallet balance. Please recharge your wallet.");
+            return "subCart";
+        }
+
+        // Deduct the total amount from the wallet
+        walletService.debitWallet(user.getUser_id(), totalAmount);
+
+        // Save the subscriptions
+        for (Subscription subscription : cart) {
+            subscriptionRepository.save(subscription);
+        }
+
+        // Clear the subscription cart
+        session.removeAttribute("subCart");
+
+        // Redirect to the payment success page
+        model.addAttribute("message", "Subscription successful!");
+        return "subscriptionSuccess";
+    }
+    
+    @GetMapping("/subscriptionlist")
+    public String viewSubscriptions(Model model, HttpSession session) {
+        return "calander";
+    }
+
+    @GetMapping("/api/subscriptions")
+    @ResponseBody
+    public List<Map<String, Object>> getSubscriptions(
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
+            HttpSession session) {
+        
+        Users user = (Users) session.getAttribute("user");
+        List<Subscription> subscriptions = subscriptionService.getSubscriptionsByUserIdAndDateRange(user.getUser_id(), start, end);
+        List<Map<String, Object>> events = new ArrayList<>();
+
+        for (Subscription subscription : subscriptions) {
+            Map<String, Object> event = new HashMap<>();
+            event.put("title", subscription.getGroceries().getGroceryName());
+            event.put("start", subscription.getStartedAt().toLocalDateTime().toString());
+            event.put("frequency", subscription.getFrequency().toString());
+            event.put("quantity", subscription.getQuantity());
+            event.put("status", subscription.getSubStatus().toString());
+            events.add(event);
+        }
+
+        return events;
+    }
+
+
+
+
+}

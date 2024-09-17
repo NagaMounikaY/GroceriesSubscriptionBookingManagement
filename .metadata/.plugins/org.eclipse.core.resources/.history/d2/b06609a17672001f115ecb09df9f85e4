@@ -1,0 +1,15 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Order;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface OrderService {
+    List<Order> getAllOrders();
+    Optional<Order> getOrderById(String orderId);
+    Order saveOrder(Order order);
+    void deleteOrder(String orderId);
+    List<Order> getOrdersByUserId(String userId);
+    void updateOrderStatus(String orderId, Order.OrderStatus status);
+}

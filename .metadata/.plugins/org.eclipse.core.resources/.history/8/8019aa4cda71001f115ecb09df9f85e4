@@ -1,0 +1,19 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Payments;
+import com.crimsonlogic.groceriessubbookingsystem.repository.PaymentRepository;
+
+@Service
+public class PaymentServiceImpl implements PaymentService {
+
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+    @Override
+    public void savePayment(Payments payment) {
+        paymentRepository.save(payment);
+    }
+}

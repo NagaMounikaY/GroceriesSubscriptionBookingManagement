@@ -1,0 +1,7 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Payments;
+
+public interface PaymentService {
+    void savePayment(Payments payment);
+}

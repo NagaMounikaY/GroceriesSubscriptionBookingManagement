@@ -1,0 +1,103 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1" isELIgnored="false" import="com.crimsonlogic.groceriessubbookingsystem.entity.Users" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Subscription Calendar</title>
+    <!-- Bootstrap CSS -->
+    <link href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css' rel='stylesheet' />
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/locales-all.min.js'></script>
+    <style>
+        /* Container style to control calendar size */
+        #calendar {
+            width: 100%;
+            max-width: 900px; /* Adjust width as needed */
+            margin: 20px auto; /* Center the calendar */
+            height: 500px; /* Adjust height as needed */
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Shadow effect */
+        }
+
+        .daily-event {
+            background-color: #ff9f89 !important; /* Light red for daily */
+            border-color: #ff9f89 !important;
+        }
+        .weekly-event {
+            background-color: #f6c7d8 !important; /* Light pink for weekly */
+            border-color: #f6c7d8 !important;
+        }
+        .monthly-event {
+            background-color: #f7b7a3 !important; /* Light orange for monthly */
+            border-color: #f7b7a3 !important;
+        }
+        .fc-event {
+            border-radius: 0 !important; /* Optional: make the box edges square */
+            color: #fff; /* White text color */
+            font-weight: bold; /* Bold text */
+        }
+        .fc-daygrid-day-number {
+            font-weight: bold; /* Bold day numbers */
+        }
+        .fc-daygrid-day-top {
+            font-size: 14px; /* Smaller font size for day headers */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="my-4">Subscription Calendar</h1>
+        <div id='calendar'></div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                events: {
+                    url: '${pageContext.request.contextPath}/subscription/api/subscriptions',
+                    method: 'GET',
+                    failure: function(response) {
+                        console.error('Error fetching events:', response);
+                        alert('Failed to fetch events.');
+                    }
+                },
+                eventClassNames: function(arg) {
+                    // Determine the class based on event frequency
+                    var frequency = arg.event.extendedProps.frequency;
+                    switch (frequency) {
+                        case 'daily':
+                            return ['daily-event'];
+                        case 'weekly':
+                            return ['weekly-event'];
+                        case 'monthly':
+                            return ['monthly-event'];
+                        default:
+                            return [];
+                    }
+                },
+                eventClick: function(info) {
+                    alert('Event: ' + info.event.title + '\n' +
+                          'Frequency: ' + info.event.extendedProps.frequency + '\n' +
+                          'Quantity: ' + info.event.extendedProps.quantity + '\n' +
+                          'Status: ' + info.event.extendedProps.status);
+                },
+                locale: 'en',
+                contentHeight: 'auto'  /* Adjust height of calendar content */
+            });
+
+            calendar.render();
+        });
+    </script>
+</body>
+</html>

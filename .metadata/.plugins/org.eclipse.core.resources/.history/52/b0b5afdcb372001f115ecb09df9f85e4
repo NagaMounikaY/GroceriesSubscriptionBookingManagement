@@ -1,0 +1,42 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1" isELIgnored="false" import="com.crimsonlogic.groceriessubbookingsystem.entity.User"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>${pageTitle}</title>
+</head>
+<body>
+    <h1>${pageTitle}</h1>
+    
+    <c:if test="${action == 'edit'}">
+        <h2>Wallet Details</h2>
+        <p><strong>Wallet ID:</strong> ${wallet.wallet_id}</p>
+        <p><strong>Amount:</strong> ${wallet.wallet_amount}</p>
+        <p><strong>User ID:</strong> ${wallet.user.user_id}</p>
+    </c:if>
+    
+    <c:if test="${action == 'add'}">
+        <!-- If user already has a wallet, don't show the form and instead display a message -->
+        <c:if test="${wallet != null}">
+            <p>You already have a wallet. <a href="${pageContext.request.contextPath}/wallet/list">Back to List</a></p>
+        </c:if>
+        <c:if test="${wallet == null}">
+            <form action="${pageContext.request.contextPath}/wallet/${action}" method="post">
+                <input type="hidden" name="user_id" value="${sessionScope.currentUser.user_id}" />
+                
+                <p>
+                    <label for="wallet_amount">Amount:</label>
+                    <input type="text" id="wallet_amount" name="wallet_amount" value="" />
+                </p>
+                
+                <p>
+                    <input type="submit" value="Add Wallet" />
+                </p>
+            </form>
+        </c:if>
+    </c:if>
+    
+    <a href="${pageContext.request.contextPath}/wallet/list">Back to List</a>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1" isELIgnored="false"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Subscription List</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4 text-center">Subscription List</h1>
+        <c:if test="${not empty subscriptions}">
+            <div class="row">
+                <c:forEach var="subscription" items="${subscriptions}">
+                    <div class="col-md-4 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">${subscription.groceries.groceryName}</h5>
+                                <p class="card-text">${subscription.groceries.description}</p>
+                                <p class="card-text price">Price: $${subscription.amount}</p>
+                                <p class="category">Category: ${subscription.groceries.category.category_name}</p>
+                                <p class="frequency">Frequency: ${subscription.frequency}</p>
+                                <p class="duration">Duration: ${subscription.durationMonths} months</p>
+                                <p class="startedAt">Started At: ${subscription.startedAt}</p>
+                            </div>
+                        </div>
+                    </div>
+                </c:forEach>
+            </div>
+        </c:if>
+        <c:if test="${empty subscriptions}">
+            <div class="alert alert-info" role="alert">
+                No subscriptions found.
+            </div>
+        </c:if>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

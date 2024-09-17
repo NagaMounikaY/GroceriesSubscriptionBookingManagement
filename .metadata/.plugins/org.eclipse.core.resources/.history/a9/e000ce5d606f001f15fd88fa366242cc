@@ -1,0 +1,33 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Groceries;
+import com.crimsonlogic.groceriessubbookingsystem.repository.GroceriesRepository;
+
+@Service
+public class GroceriesService {
+
+    @Autowired
+    private GroceriesRepository groceriesRepository;
+
+    public List<Groceries> getAllGroceries() {
+        return groceriesRepository.findAll();
+    }
+
+    public void saveGrocery(Groceries grocery) {
+        groceriesRepository.save(grocery);
+    }
+
+    public Optional<Groceries> getGroceryById(String id) {
+        return groceriesRepository.findById(id);
+    }
+
+    public List<Groceries> findByName(String name) {
+        return groceriesRepository.findByNameContainingIgnoreCase(name);
+    }
+}

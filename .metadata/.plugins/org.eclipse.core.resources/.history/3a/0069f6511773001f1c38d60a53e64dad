@@ -1,0 +1,52 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Date;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Wallet;
+import com.crimsonlogic.groceriessubbookingsystem.entity.WalletTransaction;
+import com.crimsonlogic.groceriessubbookingsystem.repository.WalletRepository;
+import com.crimsonlogic.groceriessubbookingsystem.repository.WalletTransactionRepository;
+
+@Service
+public class WalletService {
+
+    @Autowired
+    private WalletRepository walletRepository;
+
+    @Autowired
+    private WalletTransactionRepository walletTransactionRepository;
+
+    // Get Wallet by User ID
+    public Wallet getWalletByUserId(String userId) {
+        return walletRepository.findByUserUserId(userId);
+    }
+
+    // Add money to the wallet
+    public Wallet rechargeWallet(String userId, BigDecimal amount) {
+        Wallet wallet = walletRepository.findByUserUserId(userId);
+        if (wallet == null) {
+            throw new RuntimeException("Wallet not found for user: " + userId);
+        }
+
+        wallet.setBalance(wallet.getBalance().add(amount));
+
+        // Save the transaction
+        WalletTransaction transaction = new WalletTransaction();
+        transaction.setWallet(wallet);
+        transaction.setAmount(amount);
+        transaction.setTransactionDate(new Date());
+        transaction.setTransactionType("RECHARGE");
+
+        walletTransactionRepository.save(transaction);
+
+        return walletRepository.save(wallet);
+    }
+
+    // Get wallet transaction history
+    public List<WalletTransaction> getWalletTransactions(String walletId) {
+        return walletTransactionRepository.findByWalletWalletId(walletId);
+    }
+}

@@ -6,15 +6,18 @@ import java.util.Optional;
 
 public interface CategoryService {
 
-    // Save Category
-    Category saveCategory(Category category);
+	// Save Category
+	Category saveCategory(Category category);
 
-    // Get all Categories
-    List<Category> getAllCategories();
+	// Get all Categories
+	List<Category> getAllCategories();
 
-    // Get Category by ID
-    Optional<Category> getCategoryById(String id);
+	// Get Category by ID as Optional
+	Optional<Category> getListCategoryById(String id);
 
-    // Delete Category by ID
-    void deleteCategory(String id);
+	// Delete Category by ID
+	void deleteCategory(String id);
+
+	// get the category by Id
+	Category getCategoryById(String id);
 }

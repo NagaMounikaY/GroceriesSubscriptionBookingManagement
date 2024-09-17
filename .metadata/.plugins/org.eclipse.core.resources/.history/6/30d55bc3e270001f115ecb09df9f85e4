@@ -1,0 +1,32 @@
+package com.crimsonlogic.groceriessubbookingsystem.dao;
+
+import java.math.BigDecimal;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Order;
+
+import lombok.Data;
+
+@Data
+public class OrderDetailsDTO {
+    private String orderId;
+    private String userId;
+    private String groceryId;
+    private String groceryName;
+    private BigDecimal groceryPrice;
+    private float totalAmount;
+    private Order.OrderStatus orderStatus;
+    private String orderDate;
+
+    public static OrderDetailsDTO fromOrder(Order order) {
+        OrderDetailsDTO dto = new OrderDetailsDTO();
+        dto.setOrderId(order.getOrder_id());
+        dto.setUserId(order.getUsers().getUser_id());
+        dto.setGroceryId(order.getGrocery().getGrocery_id()); 
+        dto.setGroceryName(order.getGrocery().getGroceryName()); 
+        dto.setGroceryPrice(order.getGrocery().getGrocery_price()); 
+        dto.setTotalAmount(order.getTotalAmount());
+        dto.setOrderStatus(order.getOrderStatus());
+        dto.setOrderDate(order.getOrder_date().toString());
+        return dto;
+    }
+}

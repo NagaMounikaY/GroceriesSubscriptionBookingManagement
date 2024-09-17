@@ -1,0 +1,30 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1" isELIgnored="false"%>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Payment History</title>
+</head>
+<body>
+    <h1>Payment History</h1>
+    <div th:if="${message}">
+        <p th:text="${message}"></p>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Payment ID</th>
+                <th>Amount</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="payment : ${paymentHistory}">
+                <td th:text="${payment.id}"></td>
+                <td th:text="${payment.amount}"></td>
+                <td th:text="${payment.payment_date}"></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

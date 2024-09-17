@@ -1,0 +1,13 @@
+package com.crimsonlogic.groceriessubbookingsystem.entity;
+
+public class PasswordResetToken {
+	
+	   @Id
+	    @GeneratedValue(strategy = GenerationType.IDENTITY)
+	    private Long id;
+
+	    private String token;
+	    private String userId;
+	    private LocalDateTime expiryDate;
+
+}

@@ -1,0 +1,46 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1" isELIgnored="false" import="com.crimsonlogic.groceriessubbookingsystem.entity.Users" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Subscription Calendar</title>
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/locales-all.min.js'></script>
+    <style>
+        .fc-event-title {
+            white-space: normal;
+        }
+    </style>
+</head>
+<body>
+    <div id='calendar'></div>
+   <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof FullCalendar !== 'undefined') {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                events: '${pageContext.request.contextPath}/api/subscriptions',
+                eventContent: function(arg) {
+                    let eventTitle = document.createElement('div');
+                    eventTitle.innerHTML = `
+                        <strong>${arg.event.title}</strong><br>
+                        Frequency: ${arg.event.extendedProps.frequency}<br>
+                        Quantity: ${arg.event.extendedProps.quantity}<br>
+                        Status: ${arg.event.extendedProps.status}
+                    `;
+                    return { domNodes: [eventTitle] };
+                }
+            });
+            calendar.render();
+        } else {
+            console.error('FullCalendar is not loaded.');
+        }
+    });
+</script>
+
+</body>
+</html>

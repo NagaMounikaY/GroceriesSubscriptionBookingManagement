@@ -1,0 +1,218 @@
+package com.crimsonlogic.groceriessubbookingsystem.controller;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Groceries;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Order;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Users;
+import com.crimsonlogic.groceriessubbookingsystem.service.GroceriesService;
+import com.crimsonlogic.groceriessubbookingsystem.service.OrderService;
+import com.crimsonlogic.groceriessubbookingsystem.service.UserService;
+
+@Controller
+@RequestMapping("/orders")
+public class OrderController {
+
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private GroceriesService groceryService;
+
+    @Autowired
+    private UserService userService;
+
+    @GetMapping("/viewOrders")
+    public String viewOrders(HttpSession session, Model model) {
+        Users user = (Users) session.getAttribute("user");
+        List<Order> orders;
+        if (user != null && "Seller".equals(user.getUserRole())) {
+            orders = orderService.getAllOrders();
+        } else {
+            orders = orderService.getOrdersByUserId(user.getUser_id());
+        }
+        model.addAttribute("orders", orders);
+        model.addAttribute("userId", user.getUser_id());
+        return "orderList";
+    }
+
+    @PostMapping("/updateStatus")
+    public String updateOrderStatus(@RequestParam("order_id") String orderId, 
+                                     @RequestParam("orderStatus") String status,
+                                     HttpSession session, Model model) {
+        System.out.println("Order ID: " + orderId);
+        System.out.println("Order Status: " + status);
+
+        Order.OrderStatus orderStatus;
+        try {
+            orderStatus = Order.OrderStatus.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("message", "Invalid status");
+            return "orderList";
+        }
+
+        orderService.updateOrderStatus(orderId, orderStatus);
+
+        Users user = (Users) session.getAttribute("user");
+        if (user == null) {
+            model.addAttribute("message", "User not found in session");
+            return "orderList";
+        }
+
+        List<Order> orders;
+        if ("Seller".equals(user.getUserRole())) {
+            orders = orderService.getAllOrders();
+        } else {
+            orders = orderService.getOrdersByUserId(user.getUser_id());
+        }
+        model.addAttribute("orders", orders);
+        model.addAttribute("message", "Order status updated successfully");
+        model.addAttribute("updateSuccess", true);
+
+        return "orderList";
+    }
+    
+    @GetMapping("/order")
+    public String getOrder(@RequestParam("groceryId") String groceryId, Model model) {
+        Groceries grocery = groceryService.getGroceryById(groceryId);
+        model.addAttribute("grocery", grocery);
+        return "order-details"; // JSP page to display order details
+    }
+
+    @PostMapping("/submit")
+    public String submitOrder(@ModelAttribute Order order, 
+                              @RequestParam("grocery_id") String groceryId, 
+                              @RequestParam("quantity") int quantity, 
+                              @RequestParam("user_id") String userId, 
+                              HttpSession session, 
+                              Model model) {
+        // Fetch the grocery details
+        Groceries grocery = groceryService.getGroceryById(groceryId);
+        order.setGrocery(grocery);
+
+        // Fetch the user details
+        Users user = userService.getUsersById(userId);
+        order.setUsers(user);
+
+        // Set the order details
+        order.setTotalAmount(grocery.getGrocery_price().multiply(BigDecimal.valueOf(quantity)));
+        order.setOrderStatus(Order.OrderStatus.Processed);
+        order.setOrder_date(Timestamp.from(Instant.now()));
+
+        // Get the cart from the session
+        List<Order> cart = (List<Order>) session.getAttribute("cart");
+        if (cart == null) {
+            cart = new ArrayList<>();
+        }
+
+        // Add the order to the cart
+        cart.add(order);
+        session.setAttribute("cart", cart);
+
+        // Calculate the total amount of all items in the cart
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        for (Order o : cart) {
+            totalAmount = totalAmount.add(o.getTotalAmount());
+        }
+
+        // Add cart and total amount to the model to display in the view
+        model.addAttribute("cart", cart);
+        model.addAttribute("totalAmount", totalAmount);
+
+        return "addToCart"; // JSP page to display the cart
+    }
+
+    @PostMapping("/addQuantity")
+    public String addQuantity(@RequestParam("index") int index, HttpSession session, Model model) {
+        List<Order> cart = (List<Order>) session.getAttribute("cart");
+        if (cart != null && index >= 0 && index < cart.size()) {
+            Order order = cart.get(index);
+            order.setQuantity(order.getQuantity() + 1);
+            order.setTotalAmount(order.getGrocery().getGrocery_price().multiply(BigDecimal.valueOf(order.getQuantity())));
+            session.setAttribute("cart", cart);
+        }
+        return "redirect:/orders/cart";
+    }
+    
+    @PostMapping("/reduceQuantity")
+    public String reduceQuantity(@RequestParam("index") int index, HttpSession session, Model model) {
+        List<Order> cart = (List<Order>) session.getAttribute("cart");
+        if (cart != null && index >= 0 && index < cart.size()) {
+            Order order = cart.get(index);
+            if (order.getQuantity() > 1) {
+                order.setQuantity(order.getQuantity() - 1);
+                order.setTotalAmount(order.getGrocery().getGrocery_price().multiply(BigDecimal.valueOf(order.getQuantity())));
+            } else {
+                cart.remove(index);
+            }
+            session.setAttribute("cart", cart);
+        }
+        return "redirect:/orders/cart";
+    }
+
+
+    @PostMapping("/remove")
+    public String removeFromCart(@RequestParam("index") int index, HttpSession session, Model model) {
+        List<Order> cart = (List<Order>) session.getAttribute("cart");
+        if (cart != null && index >= 0 && index < cart.size()) {
+            cart.remove(index);
+            session.setAttribute("cart", cart);
+        }
+        return "redirect:/orders/cart";
+    }
+
+    @GetMapping("/cart")
+    public String viewCart(HttpSession session, Model model) {
+        List<Order> cart = (List<Order>) session.getAttribute("cart");
+        BigDecimal totalAmount = BigDecimal.ZERO;
+
+        if (cart != null) {
+            for (Order order : cart) {
+                totalAmount = totalAmount.add(order.getTotalAmount());
+            }
+        }
+
+        model.addAttribute("cart", cart);
+        model.addAttribute("totalAmount", totalAmount);
+
+        return "addToCart";
+    }
+
+    @PostMapping("/checkout")
+    public String checkout(HttpSession session, Model model) {
+        List<Order> cart = (List<Order>) session.getAttribute("cart");
+        if (cart == null || cart.isEmpty()) {
+            model.addAttribute("message", "No items in the cart");
+            return "addToCart";
+        }
+
+        // Calculate the total amount
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        for (Order order : cart) {
+            totalAmount = totalAmount.add(order.getTotalAmount());
+        }
+
+        // Store the cart and total amount in the session
+        session.setAttribute("cart", cart);
+        session.setAttribute("totalAmount", totalAmount);
+
+        // Redirect to the payment page with the total amount as a parameter
+        return "redirect:/payment?totalAmount=" + totalAmount;
+    }
+
+
+}

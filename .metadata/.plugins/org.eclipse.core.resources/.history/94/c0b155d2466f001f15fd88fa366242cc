@@ -1,0 +1,47 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Users;
+import com.crimsonlogic.groceriessubbookingsystem.repository.UserRepository;
+
+@Service
+public class UserService {
+	
+	 @Autowired
+	    private UserRepository usersRepository;
+
+	    public List<Users> getAllUsers() {
+	        return usersRepository.findAll();
+	    }
+
+	    public Optional<Users> getUserById(String userId) {
+	        return usersRepository.findById(userId);
+	    }
+
+	    public Users registerUser(Users user) {
+	        return usersRepository.save(user);
+	    }
+
+	    public Optional<Users> loginUser(String email, String password) {
+	        return usersRepository.findByUserEmailAndUserPassword(email, password);
+	    }
+
+	    public Users updateUser(String userId, Users userDetails) {
+	        Users user = usersRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+	        user.setUser_Name(userDetails.getUser_Name());
+	        user.setUser_role(userDetails.getUser_role());
+	        user.setUser_email(userDetails.getUser_email());
+	        user.setUser_password(userDetails.getUser_password());
+	        user.setUser_mobile_number(userDetails.getUser_mobile_number());
+	        return usersRepository.save(user);
+	    }
+
+	    public void deleteUser(String userId) {
+	        usersRepository.deleteById(userId);
+	    }
+}

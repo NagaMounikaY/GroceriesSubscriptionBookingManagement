@@ -1,0 +1,5 @@
+package com.crimsonlogic.groceriessubbookingsystem.repository;
+
+public interface PasswordResetTokenRepository {
+
+}

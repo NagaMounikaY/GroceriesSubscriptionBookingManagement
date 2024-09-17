@@ -1,0 +1,133 @@
+package com.crimsonlogic.groceriessubbookingsystem.controller;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.User;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Wallet;
+import com.crimsonlogic.groceriessubbookingsystem.service.UserService;
+import com.crimsonlogic.groceriessubbookingsystem.service.WalletService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
+import java.util.Optional;
+
+@Controller
+@RequestMapping("/wallet")
+public class WalletController {
+
+    @Autowired
+    private WalletService walletService;
+
+    @Autowired
+    private UserService userService;
+
+    @GetMapping("/list")
+    public String listWallets(HttpSession session, Model model) {
+        User currentUser = (User) session.getAttribute("user");
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+        Wallet wallet = walletService.getWalletByUserId(currentUser.getUserId()).orElse(null);
+        model.addAttribute("wallet", wallet);
+        return "wallet-list";
+    }
+
+    @GetMapping("/add")
+    public String showAddForm(HttpSession session, Model model) {
+        User currentUser = (User) session.getAttribute("currentUser");
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+        
+        // Check if the user already has a wallet
+        if (walletService.getWalletByUserId(currentUser.getUserId()).isPresent()) {
+            return "redirect:/wallet/list"; // Redirect to wallet list if a wallet already exists
+        }
+
+        model.addAttribute("wallet", new Wallet());
+        model.addAttribute("pageTitle", "Add Wallet");
+        model.addAttribute("action", "add");
+        return "wallet-form";
+    }
+
+    @PostMapping("/add")
+    public String addWallet(@Valid @ModelAttribute Wallet wallet, BindingResult bindingResult, HttpSession session, Model model) {
+        User currentUser = (User) session.getAttribute("currentUser");
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+        
+        // Check if the user already has a wallet
+        if (walletService.getWalletByUserId(currentUser.getUserId()).isPresent()) {
+            return "redirect:/wallet/list"; // Redirect to wallet list if a wallet already exists
+        }
+        
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("pageTitle", "Add Wallet");
+            model.addAttribute("action", "add");
+            return "wallet-form";
+        }
+        wallet.setUser(currentUser); // Set the current user
+        walletService.createWallet(wallet);
+        return "redirect:/wallet/list";
+    }
+
+    @GetMapping("/edit/{id}")
+    public String showEditForm(@PathVariable("id") String walletId, HttpSession session, Model model) {
+        User currentUser = (User) session.getAttribute("currentUser");
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+        Optional<Wallet> wallet = walletService.getWalletById(walletId);
+        if (wallet.isPresent() && wallet.get().getUser().equals(currentUser)) {
+            model.addAttribute("wallet", wallet.get());
+            model.addAttribute("pageTitle", "Edit Wallet");
+            model.addAttribute("action", "edit");
+            return "wallet-form";
+        } else {
+            model.addAttribute("error", "Wallet not found or unauthorized access.");
+            return "error";
+        }
+    }
+
+    @PostMapping("/edit")
+    public String editWallet(@Valid @ModelAttribute Wallet wallet, BindingResult bindingResult, HttpSession session, Model model) {
+        User currentUser = (User) session.getAttribute("currentUser");
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+        
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("pageTitle", "Edit Wallet");
+            model.addAttribute("action", "edit");
+            return "wallet-form";
+        }
+        wallet.setUser(currentUser); // Ensure the user is set
+        walletService.updateWallet(wallet);
+        return "redirect:/wallet/list";
+    }
+
+    @GetMapping("/delete/{id}")
+    public String deleteWallet(@PathVariable("id") String walletId, HttpSession session, Model model) {
+        User currentUser = (User) session.getAttribute("currentUser");
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+        try {
+            Optional<Wallet> wallet = walletService.getWalletById(walletId);
+            if (wallet.isPresent() && wallet.get().getUser().equals(currentUser)) {
+                walletService.deleteWallet(walletId);
+            } else {
+                model.addAttribute("error", "Wallet not found or unauthorized access.");
+                return "error";
+            }
+        } catch (RuntimeException e) {
+            model.addAttribute("error", "Wallet not found with ID: " + walletId);
+            return "error";
+        }
+        return "redirect:/wallet/list";
+    }
+}

@@ -1,0 +1,38 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Subscription;
+import com.crimsonlogic.groceriessubbookingsystem.repository.SubscriptionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class SubscriptionServiceImpl implements SubscriptionService {
+
+    @Autowired
+    private SubscriptionRepository subscriptionRepository;
+
+    @Override
+    public List<Subscription> getAllSubscriptions() {
+        return subscriptionRepository.findAll();
+    }
+
+    @Override
+    public Subscription getSubscriptionById(String subscriptionId) {
+        return subscriptionRepository.findById(subscriptionId).orElse(null);
+    }
+
+    @Override
+    public void saveSubscription(Subscription subscription) {
+        subscriptionRepository.save(subscription);
+    }
+
+    @Override
+    public void updateSubscription(String subscriptionId, Subscription subscription) {
+        if (subscriptionRepository.existsById(subscriptionId)) {
+            subscription.setSubscription_id(subscriptionId);
+            subscriptionRepository.save(subscription);
+        }
+    }
+}

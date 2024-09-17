@@ -1,0 +1,63 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.crimsonlogic.groceriessubbookingsystem.dao.OrderDetailsDTO;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Groceries;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Order;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Users;
+import com.crimsonlogic.groceriessubbookingsystem.repository.GroceryRepository;
+import com.crimsonlogic.groceriessubbookingsystem.repository.OrderRepository;
+import com.crimsonlogic.groceriessubbookingsystem.repository.UserRepository;
+
+@Service
+public class OrderServiceImpl implements OrderService{
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private UserRepository usersRepository;
+
+    @Autowired
+    private GroceryRepository groceriesRepository;
+
+    public Order createOrder(String userId, String groceryId) {
+        Optional<Users> userOptional = usersRepository.findById(userId);
+        Optional<Groceries> groceryOptional = groceriesRepository.findById(groceryId);
+
+        if (!userOptional.isPresent() || !groceryOptional.isPresent()) {
+            throw new IllegalArgumentException("Invalid user or grocery ID");
+        }
+
+        Users user = userOptional.get();
+        Groceries grocery = groceryOptional.get();
+
+        Order order = new Order();
+        order.setUsers(user);
+        order.setGrocery(grocery);
+        order.setTotalAmount(grocery.getGrocery_price()); // Assuming Groceries has a getPrice method
+        order.setOrderStatus(Order.OrderStatus.Pending);
+        order.setOrder_date(new Timestamp(System.currentTimeMillis())); // Sets the current date and time
+
+        return orderRepository.save(order);
+    }
+
+    public OrderDetailsDTO getOrderDetails(String orderId) {
+        Optional<Order> orderOptional = orderRepository.findById(orderId);
+        if (orderOptional.isPresent()) {
+            return OrderDetailsDTO.fromOrder(orderOptional.get());
+        } else {
+            throw new IllegalArgumentException("Order not found");
+        }
+    }
+
+    public List<Order> listOrders() {
+        return orderRepository.findAll();
+    }
+}

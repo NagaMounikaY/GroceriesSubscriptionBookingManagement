@@ -1,0 +1,201 @@
+package com.crimsonlogic.groceriessubbookingsystem.controller;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Groceries;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Order;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Users;
+import com.crimsonlogic.groceriessubbookingsystem.service.GroceriesService;
+import com.crimsonlogic.groceriessubbookingsystem.service.OrderService;
+
+@Controller
+@RequestMapping("/order")
+public class OrderController {
+
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private GroceriesService groceryService;
+
+    // Display order details
+    @GetMapping("/details")
+    public String getOrderDetails(@RequestParam("groceryId") String groceryId, Model model) {
+        Groceries grocery = groceryService.getGroceryById(groceryId);
+        model.addAttribute("grocery", grocery);
+        return "order-details"; // JSP page to display order details
+    }
+
+    // Submit a new order
+    @PostMapping("/submit")
+    public String submitOrder(@RequestParam("grocery_id") String groceryId,
+                              @RequestParam("quantity") int quantity,
+                              @RequestParam("user_id") String userId,
+                              HttpSession session,
+                              Model model) {
+        try {
+            // Create an order
+            Order order = orderService.createOrder(groceryId, userId, quantity);
+
+            // Update stock quantity in the grocery
+            boolean stockUpdated = groceryService.updateStock(groceryId, -quantity);
+            if (!stockUpdated) {
+                model.addAttribute("message", "Insufficient stock for the requested quantity.");
+                return "errorPage"; // Redirect to an error page or display an error message
+            }
+
+            // Get the order cart from the session
+            @SuppressWarnings("unchecked")
+            List<Order> cart = (List<Order>) session.getAttribute("orderCart");
+            if (cart == null) {
+                cart = new ArrayList<>();
+            }
+
+            // Add the order to the cart
+            cart.add(order);
+            session.setAttribute("orderCart", cart);
+
+            // Calculate the total amount of all items in the cart
+            BigDecimal totalAmount = orderService.calculateTotalAmount(cart);
+
+            // Add cart and total amount to the model to display in the view
+            model.addAttribute("orderCart", cart);
+            model.addAttribute("orderTotalAmount", totalAmount);
+
+            return "orderCart"; // JSP page to display the cart
+        } catch (Exception e) {
+            model.addAttribute("message", "Error creating order: " + e.getMessage());
+            return "errorPage"; // Redirect to an error page or display an error message
+        }
+    }
+
+    // Display the order cart details
+    @GetMapping("/cart")
+    public String viewCart(HttpSession session, Model model) {
+        @SuppressWarnings("unchecked")
+        List<Order> cart = (List<Order>) session.getAttribute("orderCart");
+
+        // Calculate total amount using OrderService
+        BigDecimal totalAmount = orderService.calculateTotalAmount(cart);
+
+        model.addAttribute("cart", cart);
+        model.addAttribute("orderTotalAmount", totalAmount);
+
+        return "orderCart";
+    }
+
+    // Remove an order item from the cart
+    @PostMapping("/remove")
+    public String removeFromCart(@RequestParam("index") int index, HttpSession session, Model model) {
+        @SuppressWarnings("unchecked")
+        List<Order> cart = (List<Order>) session.getAttribute("orderCart");
+        if (cart != null && index >= 0 && index < cart.size()) {
+            Order removedOrder = cart.remove(index);
+            session.setAttribute("orderCart", cart);
+
+            // Update stock quantity in the grocery
+            groceryService.updateStock(removedOrder.getGroceries().getGroceryId(), removedOrder.getQuantity());
+        }
+        return "redirect:/order/cart";
+    }
+
+    // Increase the quantity of an order item
+    @PostMapping("/addquantity")
+    public String addQuantity(@RequestParam("index") int index, HttpSession session, Model model) {
+        @SuppressWarnings("unchecked")
+        List<Order> cart = (List<Order>) session.getAttribute("orderCart");
+
+        if (cart != null) {
+            Order order = cart.get(index);
+            boolean success = orderService.addQuantity(order, cart);
+
+            if (success) {
+                // Update stock quantity in the grocery
+                groceryService.updateStock(order.getGroceries().getGroceryId(), -1);
+                session.setAttribute("orderCart", cart);
+
+                // Calculate the total amount after addition
+                BigDecimal totalAmount = orderService.calculateTotalAmount(cart);
+                model.addAttribute("orderCart", cart);
+                model.addAttribute("orderTotalAmount", totalAmount);
+            } else {
+                model.addAttribute("message", "Failed to increase quantity.");
+                return "errorPage"; // Redirect to an error page or display an error message
+            }
+        }
+
+        return "redirect:/order/cart"; // Update to the appropriate view name
+    }
+
+    // Decrease the quantity of an order item
+    @PostMapping("/reducequantity")
+    public String reduceQuantity(@RequestParam("index") int index, HttpSession session, Model model) {
+        @SuppressWarnings("unchecked")
+        List<Order> cart = (List<Order>) session.getAttribute("orderCart");
+
+        if (cart != null) {
+            Order order = cart.get(index);
+            boolean success = orderService.reduceQuantity(order, cart);
+
+            if (success) {
+                // Update stock quantity in the grocery
+                groceryService.updateStock(order.getGroceries().getGroceryId(), 1);
+                session.setAttribute("orderCart", cart);
+
+                // Calculate the total amount after reduction
+                BigDecimal totalAmount = orderService.calculateTotalAmount(cart);
+                model.addAttribute("orderCart", cart);
+                model.addAttribute("orderTotalAmount", totalAmount);
+            } else {
+                model.addAttribute("message", "Failed to reduce quantity.");
+                return "errorPage"; // Redirect to an error page or display an error message
+            }
+        }
+
+        return "redirect:/order/cart"; // Update to the appropriate view name
+    }
+
+    // Redirect to the payment page
+    @GetMapping("/checkout")
+    public String checkout(HttpSession session, Model model) {
+        @SuppressWarnings("unchecked")
+        List<Order> cart = (List<Order>) session.getAttribute("orderCart");
+        Users user = (Users) session.getAttribute("user");
+
+        String result = orderService.checkoutOrders(cart, user);
+
+        if (result.equals("No items in the cart") || result.contains("Insufficient wallet balance")) {
+            model.addAttribute("message", result);
+            return "orderCart";
+        }
+
+        // Clear the order cart
+        session.removeAttribute("orderCart");
+
+        // Redirect to the payment success page
+        model.addAttribute("message", result);
+        return "orderSuccess";
+    }
+
+    // Display all orders
+    @GetMapping("/allorders")
+    public String viewAllOrders(Model model) {
+        List<Order> orders = orderService.getAllOrders();
+        model.addAttribute("orders", orders);
+        return "order-list"; // JSP page to display all orders
+    }
+}

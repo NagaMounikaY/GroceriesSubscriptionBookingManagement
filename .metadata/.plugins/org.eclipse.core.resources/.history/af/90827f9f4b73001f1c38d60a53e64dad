@@ -1,0 +1,32 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1" isELIgnored="false" import="com.crimsonlogic.groceriessubbookingsystem.entity.Users" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Wallet List</title>
+</head>
+<body>
+    <h1>Wallet List</h1>
+    <a href="${pageContext.request.contextPath}/wallet/add">Add New Wallet</a>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Amount</th>
+            <th>User</th>
+            <th>Actions</th>
+        </tr>
+        <c:forEach var="wallet" items="${wallets}">
+            <tr>
+                <td>${wallet.wallet_id}</td>
+                <td>${wallet.wallet_amount}</td>
+                <td>${wallet.user.user_Name}</td> <!-- Assuming the user has a 'name' property -->
+                <td>
+                    <a href="${pageContext.request.contextPath}/wallet/edit/${wallet.wallet_id}">Edit</a>
+                    <a href="${pageContext.request.contextPath}/wallet/delete/${wallet.wallet_id}">Delete</a>
+                </td>
+            </tr>
+        </c:forEach>
+    </table>
+</body>
+</html>

@@ -1,0 +1,98 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Users;
+import com.crimsonlogic.groceriessubbookingsystem.repository.UserRepository;
+
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+@Service
+public class UserService {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService; // Assuming you have an EmailService
+
+    @Autowired
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, EmailService emailService) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
+    }
+
+    @Transactional
+    public void registerUser(Users user) {
+        user.setUserPassword(passwordEncoder.encode(user.getUserPassword()));
+        userRepository.save(user);
+    }
+
+    public Users loginUser(String email, String password) {
+        Optional<Users> userOptional = userRepository.findByUserEmail(email);
+        if (userOptional.isPresent()) {
+            Users user = userOptional.get();
+            if (passwordEncoder.matches(password, user.getUserPassword())) {
+                return user;
+            }
+        }
+        return null;
+    }
+
+    public Users getUserById(String userId) {
+        return userRepository.findById(userId).orElse(null);
+    }
+
+    @Transactional
+    public void updateUser(String userId, Users updatedUser) {
+        if (userRepository.existsById(userId)) {
+            updatedUser.setUser_id(userId);
+            userRepository.save(updatedUser);
+        }
+    }
+
+    @Transactional
+    public void generatePasswordResetToken(String email) {
+        Optional<Users> userOptional = userRepository.findByUserEmail(email);
+        if (userOptional.isPresent()) {
+            Users user = userOptional.get();
+            String token = generateResetToken();
+            user.setResetToken(token);
+            user.setResetTokenExpiration(LocalDateTime.now().plusHours(1)); // Token valid for 1 hour
+            userRepository.save(user);
+            emailService.sendPasswordResetEmail(user.getUserEmail(), token); // Assuming you have an EmailService
+        }
+    }
+
+    public Users validateResetToken(String token) {
+        Optional<Users> userOptional = userRepository.findByResetToken(token);
+        if (userOptional.isPresent()) {
+            Users user = userOptional.get();
+            if (user.getResetTokenExpiration().isAfter(LocalDateTime.now())) {
+                return user;
+            }
+        }
+        return null;
+    }
+
+    @Transactional
+    public void updatePassword(String token, String newPassword) {
+        Users user = validateResetToken(token);
+        if (user != null) {
+            user.setUserPassword(passwordEncoder.encode(newPassword));
+            user.setResetToken(null); // Invalidate the token
+            user.setResetTokenExpiration(null);
+            userRepository.save(user);
+        }
+    }
+
+    private String generateResetToken() {
+        SecureRandom random = new SecureRandom();
+        byte[] token = new byte[20];
+        random.nextBytes(token);
+        return new String(token); // You might want to encode this properly
+    }
+}

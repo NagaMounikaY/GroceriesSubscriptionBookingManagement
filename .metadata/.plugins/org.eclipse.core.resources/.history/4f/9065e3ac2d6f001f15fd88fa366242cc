@@ -1,0 +1,45 @@
+package com.crimsonlogic.groceriessubbookingsystem.entity;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.Set;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "Groceries")
+@Data
+@NoArgsConstructor
+public class Groceries {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int groceryID;
+
+    @Column(nullable = false)
+    private String name;
+
+    private String description;
+
+    @Column(nullable = false)
+    private BigDecimal price;
+
+    private String imageURL;
+
+    @Column(name = "createdAt")
+    private Timestamp createdAt;
+
+    @Column(name = "updatedAt")
+    private Timestamp updatedAt;
+
+    @OneToMany(mappedBy = "grocery")
+    private Set<Subscription> subscriptions;
+
+}

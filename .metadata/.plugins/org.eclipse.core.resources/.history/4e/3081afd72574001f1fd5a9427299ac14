@@ -1,0 +1,23 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Order;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Users;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
+public interface OrderService {
+    List<Order> getAllOrders();
+    Optional<Order> getOrderById(String orderId);
+    Order saveOrder(Order order);
+    List<Order> getOrdersByUserId(String userId);
+    void updateOrderStatus(String orderId, Order.OrderStatus status);
+    BigDecimal calculateTotalAmount(List<Order> cart);
+    BigDecimal calculateOrderTotalAmount(Order order);
+    Order createOrder(String groceryId, int quantity, String userId);
+    boolean decreaseOrderQuantity(List<Order> cart, int index);
+    void increaseOrderQuantity(List<Order> cart, int index);
+    Order getOrdersById(String orderId);
+    String checkoutOrder(List<Order> cart, Users user);
+}

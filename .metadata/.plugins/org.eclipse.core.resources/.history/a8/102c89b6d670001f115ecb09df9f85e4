@@ -1,0 +1,96 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1" isELIgnored="false"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groceries List</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/styles.css"> <!-- Your custom styles -->
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .card {
+            transition: transform 0.2s;
+            width: 18rem; /* Adjust the width as needed */
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+        .card-img-top {
+            height: 150px; /* Adjust the height as needed */
+            object-fit: cover;
+        }
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        .card-text {
+            font-size: 1rem;
+        }
+        .price {
+            font-weight: bold;
+            color: #28a745;
+        }
+        .stock {
+            color: #dc3545;
+        }
+        .btn-container {
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+ <!-- Conditionally Render Header -->
+    <c:choose>
+        <c:when test="${sessionScope.userRole eq 'Seller'}">
+            <!-- Seller Header -->
+            <jsp:include page="/sellerHeader.jsp"></jsp:include>
+        </c:when>
+        <c:otherwise>
+            <!-- Customer Header -->
+            <jsp:include page="/customerHeader.jsp"></jsp:include>
+        </c:otherwise>
+    </c:choose>
+	
+	<br><br><br><br>
+    <div class="container mt-5">
+        <h1 class="mb-4 text-center">Groceries List</h1>
+        <div class="row">
+            <%-- Assuming 'groceries' is a List<Groceries> object passed to the JSP --%>
+            <c:forEach var="grocery" items="${groceries}">
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm">
+                        <img src="${pageContext.request.contextPath}/uploaded/${grocery.imageURL}" class="card-img-top" alt="Image of ${grocery.groceryName}">
+                        <div class="card-body">
+                            <h5 class="card-title">${grocery.groceryName}</h5>
+                            <p class="card-text">${grocery.description}</p>
+                            <p class="card-text price">Price: $${grocery.grocery_price}</p>
+                            <p class="card-text stock">In Stock: ${grocery.in_stock}</p>
+                            <p class="category">Category: ${item.category.category_name}</p>
+                            <div class="btn-container">
+                                <a href="${pageContext.request.contextPath}/orders/add" class="btn btn-primary">Order</a>
+                                <a href="${pageContext.request.contextPath}/subscriptions/add" class="btn btn-secondary">Subscribe</a><br>
+                                <c:choose>
+                                    <c:when test="${sessionScope.userRole eq 'Seller'}">
+                                <a href="${pageContext.request.contextPath}/groceries/edit/${grocery.grocery_id}" class="btn btn-success">Update</a>
+                                </c:when>
+                                </c:choose>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </c:forEach>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <br><br><br>
+    <jsp:include page="/footer.jsp"></jsp:include>
+</body>
+</html>

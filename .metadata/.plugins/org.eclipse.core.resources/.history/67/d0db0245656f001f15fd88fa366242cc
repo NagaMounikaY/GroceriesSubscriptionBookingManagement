@@ -1,0 +1,36 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1" isELIgnored="false"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Grocery</title>
+</head>
+<body>
+    <h1>Add Grocery</h1>
+    <form action="${pageContext.request.contextPath}/groceries/add" method="post" enctype="multipart/form-data">
+        <div>
+            <label for="grocery_name">Name:</label>
+            <input type="text" id="grocery_name" name="grocery_name" />
+        </div>
+        <div>
+            <label for="description">Description:</label>
+            <input type="text" id="description" name="description" />
+        </div>
+        <div>
+            <label for="groceryPrice">Price:</label>
+            <input type="text" id="groceryPrice" name="groceryPrice" />
+        </div>
+        <div>
+            <label for="inStock">In Stock:</label>
+            <input type="text" id="inStock" name="inStock" />
+        </div>
+        <div>
+            <label for="imageURL">Image:</label>
+            <input type="file" id="imageURL" name="imageURL" />
+        </div>
+        <div>
+            <button type="submit">Add Grocery</button>
+        </div>
+    </form>
+</body>
+</html>

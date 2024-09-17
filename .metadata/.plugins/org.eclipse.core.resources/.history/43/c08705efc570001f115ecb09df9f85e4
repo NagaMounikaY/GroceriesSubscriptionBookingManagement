@@ -1,0 +1,91 @@
+package com.crimsonlogic.groceriessubbookingsystem.controller;
+
+import java.util.Optional;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Users;
+import com.crimsonlogic.groceriessubbookingsystem.service.UserService;
+
+@Controller
+@RequestMapping("/users")
+public class UserController {
+    
+    @Autowired
+    private UserService userService;
+
+    @GetMapping("/register")
+    public String showSignUpForm(Model model) {
+        model.addAttribute("user", new Users());
+        return "signup";
+    }
+
+    @PostMapping("/signup")
+    public String registerUser(@ModelAttribute("user") Users user, Model model) {
+        userService.registerUser(user);
+        model.addAttribute("message", "User registered successfully!");
+        return "login";
+    }
+
+    @GetMapping("/login")
+    public String showLoginForm(Model model) {
+        model.addAttribute("user", new Users());
+        return "login"; // This will resolve to /src/main/resources/templates/login.jsp or /WEB-INF/jsp/login.jsp
+    }
+
+    @PostMapping("/login")
+    public String loginUser(@ModelAttribute("user") Users user, Model model,HttpSession session) {
+        Optional<Users> loggedInUser = userService.loginUser(user.getUserEmail(), user.getUserPassword());
+        if (loggedInUser.isPresent()) {
+            Users loggedIn = loggedInUser.get();
+            session.setAttribute("user", loggedIn);
+            model.addAttribute("user", loggedIn);
+            if ("seller".equalsIgnoreCase(loggedIn.getUserRole())) {
+                return "seller"; // Navigate to the seller page
+            } else if ("customer".equalsIgnoreCase(loggedIn.getUserRole())) {
+                return "customer"; // Navigate to the customer page
+            } else {
+                model.addAttribute("error", "Unknown user role");
+                return "login";
+            }
+        } else {
+            model.addAttribute("error", "Invalid email or password");
+            return "login";
+        }
+    }
+
+    @GetMapping("/profile")
+    public String showProfileForm(@RequestParam("user_id") String userId, Model model) {
+        Optional<Users> user = userService.getUserById(userId);
+        if (user.isPresent()) {
+            model.addAttribute("user", user.get());
+            return "profile";
+        } else {
+            model.addAttribute("error", "User not found");
+            return "error"; // Navigate to an error page or handle accordingly
+        }
+    }
+
+    @PostMapping("/profile")
+    public String updateUser(@ModelAttribute("user") Users user, Model model) {
+        Optional<Users> existingUser = userService.getUserById(user.getUser_id());
+        if (existingUser.isPresent()) {
+            userService.updateUser(user.getUser_id(), user);
+            model.addAttribute("message", "Profile updated successfully!");
+            model.addAttribute("user", user);
+            return "profile";
+        } else {
+            model.addAttribute("error", "User not found");
+            return "error"; // Navigate to an error page or handle accordingly
+        }
+    }
+}

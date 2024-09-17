@@ -1,0 +1,40 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Wallet;
+import com.crimsonlogic.groceriessubbookingsystem.repository.WalletRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+
+@Service
+public class WalletServiceImpl implements WalletService {
+
+    @Autowired
+    private WalletRepository walletRepository;
+
+    @Override
+    public Optional<Wallet> getWalletByUserId(String userId) {
+        return walletRepository.findByUserUserId(userId);
+    }
+
+    @Override
+    public Optional<Wallet> getWalletById(String walletId) {
+        return walletRepository.findById(walletId);
+    }
+
+    @Override
+    public void createWallet(Wallet wallet) {
+        walletRepository.save(wallet);
+    }
+
+    @Override
+    public void updateWallet(Wallet wallet) {
+        walletRepository.save(wallet);
+    }
+
+    @Override
+    public void deleteWallet(String walletId) {
+        walletRepository.deleteById(walletId);
+    }
+}

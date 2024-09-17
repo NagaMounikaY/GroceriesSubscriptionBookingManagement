@@ -1,0 +1,155 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Groceries;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Subscription;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Users;
+import com.crimsonlogic.groceriessubbookingsystem.repository.GroceryRepository;
+import com.crimsonlogic.groceriessubbookingsystem.repository.SubscriptionRepository;
+import com.crimsonlogic.groceriessubbookingsystem.repository.UserRepository;
+
+@Service
+public class SubscriptionServiceImpl implements SubscriptionService {
+
+    @Autowired
+    private SubscriptionRepository subscriptionRepository;
+    
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private GroceryRepository groceriesRepository;
+
+    @Override
+    public List<Subscription> getAllSubscription() {
+        return subscriptionRepository.findAll();
+    }
+
+    @Override
+    public Optional<Subscription> getSubscriptionById(String subId) {
+        return subscriptionRepository.findById(subId);
+    }
+
+    @Override
+    public Subscription saveSubscription(Subscription sub) {
+        return subscriptionRepository.save(sub);
+    }
+
+    @Override
+    public void deleteSubscription(String subId) {
+        subscriptionRepository.deleteById(subId);
+    }
+
+    @Override
+    public List<Subscription> getSubscriptionsByUserId(String userId) {
+        return subscriptionRepository.findSubscriptionsByUserId(userId);
+    }
+
+    @Override
+    public void updateSubscriptionStatus(String subId, Subscription.SubscriptionStatus status) {
+        Optional<Subscription> subscription = subscriptionRepository.findById(subId);
+        if (subscription.isPresent()) {
+            Subscription sub = subscription.get();
+            sub.setSubStatus(status);
+            subscriptionRepository.save(sub);
+        }
+    }
+
+    private int getDayOfWeek(String weekDay) {
+        switch (weekDay.toLowerCase()) {
+            case "sunday": return Calendar.SUNDAY;
+            case "monday": return Calendar.MONDAY;
+            case "tuesday": return Calendar.TUESDAY;
+            case "wednesday": return Calendar.WEDNESDAY;
+            case "thursday": return Calendar.THURSDAY;
+            case "friday": return Calendar.FRIDAY;
+            case "saturday": return Calendar.SATURDAY;
+            default: throw new IllegalArgumentException("Invalid day of the week: " + weekDay);
+        }
+    }
+
+    public Subscription createSubscription(String groceryId, String userId, int quantity, String frequencyStr,
+                                           String startDateStr, String weekDay, Integer dayOfMonth) throws IOException {
+        // Fetch the grocery details
+        Groceries grocery = groceriesRepository.findById(groceryId)
+                                               .orElseThrow(() -> new IllegalArgumentException("Invalid grocery ID"));
+
+        // Fetch the user details
+        Users user = userRepository.findById(userId)
+                                   .orElseThrow(() -> new IllegalArgumentException("Invalid user ID"));
+
+        // Initialize subscription
+        Subscription subscription = new Subscription();
+        subscription.setGroceries(grocery);
+        subscription.setUser(user);
+        subscription.setQuantity(quantity);
+        subscription.setAmount(grocery.getGrocery_price().multiply(BigDecimal.valueOf(quantity)));
+        subscription.setSubStatus(Subscription.SubscriptionStatus.Pending);
+
+        // Set frequency and start date based on input
+        Subscription.Frequency frequency;
+        try {
+            frequency = Subscription.Frequency.valueOf(frequencyStr);
+        } catch (IllegalArgumentException e) {
+            frequency = Subscription.Frequency.daily; // Default value or handle error
+        }
+        subscription.setFrequency(frequency);
+
+        Timestamp startTimestamp = null;
+
+        // Handle different frequencies
+        switch (frequency) {
+            case daily:
+                if (startDateStr != null && !startDateStr.isEmpty()) {
+                    LocalDate startDate = LocalDate.parse(startDateStr, DateTimeFormatter.ISO_LOCAL_DATE);
+                    startTimestamp = Timestamp.from(startDate.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+                }
+                break;
+            case weekly:
+                if (weekDay != null) {
+                    Calendar cal = Calendar.getInstance();
+                    int currentDayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
+                    int targetDayOfWeek = getDayOfWeek(weekDay);
+                    int daysUntilTargetDay = (targetDayOfWeek - currentDayOfWeek + 7) % 7;
+                    cal.add(Calendar.DAY_OF_YEAR, daysUntilTargetDay);
+                    startTimestamp = new Timestamp(cal.getTimeInMillis());
+                }
+                break;
+            case monthly:
+                if (dayOfMonth != null) {
+                    LocalDate today = LocalDate.now();
+                    LocalDate nextMonth = today.plusMonths(1);
+                    LocalDate subscriptionDate = nextMonth.withDayOfMonth(dayOfMonth);
+                    startTimestamp = Timestamp.from(subscriptionDate.atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+                }
+                break;
+        }
+
+        if (startTimestamp != null) {
+            subscription.setStartedAt(startTimestamp);
+        }
+
+        // Save the subscription
+        return subscriptionRepository.save(subscription);
+    }
+
+    //calculating the total amount of subscription
+    public BigDecimal calculateTotalAmount(List<Subscription> cart) {
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        for (Subscription sub : cart) {
+            totalAmount = totalAmount.add(sub.getAmount());
+        }
+        return totalAmount;
+    }
+}

@@ -1,0 +1,210 @@
+package com.crimsonlogic.groceriessubbookingsystem.controller;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Groceries;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Order;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Users;
+import com.crimsonlogic.groceriessubbookingsystem.service.GroceriesService;
+
+// Import statements...
+
+import com.crimsonlogic.groceriessubbookingsystem.service.OrderService;
+
+@Controller
+@RequestMapping("/orders")
+public class OrderController {
+
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private GroceriesService groceryService;
+
+    
+    //view the orders based on the role
+    @GetMapping("/viewOrders")
+    public String viewOrders(HttpSession session, Model model) {
+    	
+    	//based on the user it display the list
+        Users user = (Users) session.getAttribute("user");
+        List<Order> orders;
+        if (user != null && "Seller".equals(user.getUserRole())) {
+            orders = orderService.getAllOrders();
+        } else {
+            orders = orderService.getOrdersByUserId(user.getUser_id());
+        }
+        model.addAttribute("orders", orders);
+        model.addAttribute("userId", user != null ? user.getUser_id() : null);
+        return "orderList";
+    }
+    
+    
+    //updating the status
+    @PostMapping("/updateStatus")
+    public String updateOrderStatus(@RequestParam("order_id") String orderId, 
+                                     @RequestParam("orderStatus") String status,
+                                     HttpSession session, Model model) {
+    	
+    	//storing the status into orderStatus
+        Order.OrderStatus orderStatus;
+        try {
+            orderStatus = Order.OrderStatus.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("message", "Invalid status");
+            return "orderList";
+        }
+
+        orderService.updateOrderStatus(orderId, orderStatus);
+
+        Users user = (Users) session.getAttribute("user");
+        
+        //view the update status based on role
+        List<Order> orders;
+        if ("Seller".equals(user.getUserRole())) {
+            orders = orderService.getAllOrders();
+        } else {
+            orders = orderService.getOrdersByUserId(user.getUser_id());
+        }
+        model.addAttribute("orders", orders);
+        model.addAttribute("message", "Order status updated successfully");
+        model.addAttribute("updateSuccess", true);
+
+        return "orderList";
+    }
+     
+    //view the order details and grocery details based on grocery id
+    @GetMapping("/order")
+    public String getOrder(@RequestParam("groceryId") String groceryId, Model model) {
+        Groceries grocery = groceryService.getGroceryById(groceryId);
+        model.addAttribute("grocery", grocery);
+        return "order-details";
+    }
+
+    //post the order details and grocery details into cart
+    @PostMapping("/submit")
+    public String submitOrder(@ModelAttribute Order order, 
+                              @RequestParam("grocery_id") String groceryId, 
+                              @RequestParam("quantity") int quantity, 
+                              @RequestParam("user_id") String userId, 
+                              HttpSession session, 
+                              Model model) {
+    	
+        Order newOrder = orderService.createOrder(groceryId, quantity, userId);
+
+        session.setAttribute("orderId", newOrder);
+        
+        //list of items in the cart
+        List<Order> cart = (List<Order>) session.getAttribute("cart");
+        if (cart == null) {
+            cart = new ArrayList<>();
+        }
+        cart.add(newOrder);
+        session.setAttribute("cart", cart);
+        
+        //calculating the total amount
+        BigDecimal totalAmount = orderService.calculateTotalAmount(cart);
+
+        model.addAttribute("cart", cart);
+        model.addAttribute("totalAmount", totalAmount);
+
+        return "addToCart";
+    }
+    
+    
+    //increase the item quantity
+    @PostMapping("/addQuantity")
+    public String addQuantity(@RequestParam("index") int index, HttpSession session, Model model) {
+    	
+        @SuppressWarnings("unchecked")
+		List<Order> cart = (List<Order>) session.getAttribute("cart");
+        orderService.increaseOrderQuantity(cart, index);
+        session.setAttribute("cart", cart);
+        
+        //Calculating the increasing item total amount
+        BigDecimal totalAmount = orderService.calculateTotalAmount(cart);
+        model.addAttribute("totalAmount", totalAmount);
+
+        return "redirect:/orders/cart";
+    }
+    
+    
+    //reducing the item quantity
+    @PostMapping("/reduceQuantity")
+    public String reduceQuantity(@RequestParam("index") int index, HttpSession session, Model model) {
+    	
+        @SuppressWarnings("unchecked")
+		List<Order> cart = (List<Order>) session.getAttribute("cart");
+        orderService.decreaseOrderQuantity(cart, index);
+        session.setAttribute("cart", cart);
+
+        //Calculating the increasing item total amount
+        BigDecimal totalAmount = orderService.calculateTotalAmount(cart);
+        model.addAttribute("totalAmount", totalAmount);
+
+        return "redirect:/orders/cart";
+    }
+    
+    
+    //remove item into the cart
+    @PostMapping("/remove")
+    public String removeFromCart(@RequestParam("index") int index, HttpSession session, Model model) {
+        List<Order> cart = (List<Order>) session.getAttribute("cart");
+        if (cart != null && index >= 0 && index < cart.size()) {
+            cart.remove(index);
+            session.setAttribute("cart", cart);
+        }
+        
+        //calculating the remove item amount
+        BigDecimal totalAmount = orderService.calculateTotalAmount(cart);
+        model.addAttribute("totalAmount", totalAmount);
+        return "redirect:/orders/cart";
+    }
+    
+    //display the cart list
+    @GetMapping("/cart")
+    public String viewCart(HttpSession session, Model model) {
+        List<Order> cart = (List<Order>) session.getAttribute("cart");
+        
+        //displaying the total amount in the cart
+        BigDecimal totalAmount = orderService.calculateTotalAmount(cart);
+
+        model.addAttribute("cart", cart);
+        model.addAttribute("totalAmount", totalAmount);
+
+        return "addToCart";
+    }
+    
+    
+    //redirecting to the payment page
+    @GetMapping("/checkout")
+    public String checkout(HttpSession session, Model model) {
+        List<Order> cart = (List<Order>) session.getAttribute("cart");
+        if (cart == null || cart.isEmpty()) {
+            model.addAttribute("message", "No items in the cart");
+            return "addToCart";
+        }
+        
+        
+        //geting the total amount cart into payment page
+        BigDecimal totalAmount = orderService.calculateTotalAmount(cart);
+
+        session.setAttribute("cart", cart);
+        session.setAttribute("totalAmount", totalAmount);
+
+        return "redirect:/payment?totalAmount=" + totalAmount;
+    }
+}

@@ -1,0 +1,36 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1" isELIgnored="false"%>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Add Grocery</title>
+</head>
+<body>
+    <h1>Add Grocery</h1>
+    <form th:action="@{/groceries/add}" th:object="${grocery}" method="post" enctype="multipart/form-data">
+        <div>
+            <label for="groceryName">Name:</label>
+            <input type="text" id="groceryName" th:field="*{groceryName}" />
+        </div>
+        <div>
+            <label for="description">Description:</label>
+            <input type="text" id="description" th:field="*{description}" />
+        </div>
+        <div>
+            <label for="groceryPrice">Price:</label>
+            <input type="text" id="groceryPrice" th:field="*{groceryPrice}" />
+        </div>
+        <div>
+            <label for="inStock">In Stock:</label>
+            <input type="text" id="inStock" th:field="*{inStock}" />
+        </div>
+        <div>
+            <label for="imageURL">Image:</label>
+            <input type="file" id="imageURL" name="imageURL" />
+        </div>
+        <div>
+            <button type="submit">Add Grocery</button>
+        </div>
+    </form>
+</body>
+</html>

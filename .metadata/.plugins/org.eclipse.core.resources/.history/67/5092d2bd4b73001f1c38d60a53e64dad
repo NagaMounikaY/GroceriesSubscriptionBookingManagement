@@ -1,0 +1,41 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1" isELIgnored="false"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Add Subscription</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4 text-center">Add Subscription</h1>
+        <form action="${pageContext.request.contextPath}/subscriptions/add" method="post">
+            <div class="form-group">
+                <label for="groceryId">Grocery ID</label>
+                <input type="text" class="form-control" id="groceryId" name="groceryId" required>
+            </div>
+            <div class="form-group">
+                <label for="frequency">Frequency</label>
+                <select class="form-control" id="frequency" name="frequency" required>
+                    <option value="Weekly">Weekly</option>
+                    <option value="Bi_Weekly">Bi-Weekly</option>
+                    <option value="Monthly">Monthly</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="durationMonths">Duration (Months)</label>
+                <input type="number" class="form-control" id="durationMonths" name="durationMonths" required>
+            </div>
+            <div class="form-group">
+                <label for="amount">Amount</label>
+                <input type="number" step="0.01" class="form-control" id="amount" name="amount" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Subscription</button>
+        </form>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

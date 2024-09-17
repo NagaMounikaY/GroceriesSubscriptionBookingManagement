@@ -1,0 +1,44 @@
+package com.crimsonlogic.groceriessubbookingsystem.service;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.crimsonlogic.groceriessubbookingsystem.entity.Order;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Payments;
+import com.crimsonlogic.groceriessubbookingsystem.entity.Users;
+import com.crimsonlogic.groceriessubbookingsystem.repository.OrderRepository;
+import com.crimsonlogic.groceriessubbookingsystem.repository.PaymentRepository;
+
+@Service
+public class PaymentServiceImpl implements PaymentService {
+
+    @Autowired
+    private PaymentRepository paymentRepository;
+    
+    private OrderRepository orderRepository;
+
+    @Override
+    public void savePayment(Payments payment) {
+        paymentRepository.save(payment);
+    }
+    
+    public List<Payments> findPaymentsByUserId(String userId) {
+        return paymentRepository.findPaymentsByUserId(userId);
+    }
+    
+    public void savePaymentAndOrders(Payment payment, Users user, List<Order> orders) {
+        // Save the payment details
+        payment.setPayment_date(LocalDate.now());
+        payment.setUser(user);
+        paymentRepository.save(payment);
+
+        // Save the orders to the database
+        for (Order order : orders) {
+            order.setUsers(user);
+            orderRepository.save(order);
+        }
+    }
+}
